@@ -1,7 +1,7 @@
 function App() {
   return (
     <>
-      <div>Main Content</div>
+      <div className="text-green-300">Main Content</div>
     </>
   );
 }
