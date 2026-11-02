@@ -8,13 +8,13 @@ const hourlySales = [
   { hour: '16', value: 58, height: 44 },
   { hour: '18', value: 88, height: 61 },
   { hour: '20', value: 120, height: 80, highlight: true },
-  { hour: '22', value: 64, height: 47 }
+  { hour: '22', value: 64, height: 47 },
 ];
 
 const topProducts = [
   { rank: '01', name: 'Coca Cola 500 ml', units: '48 unid.', revenue: 'S/ 336.00' },
   { rank: '02', name: 'Pan francés', units: '32 unid.', revenue: 'S/ 144.00' },
-  { rank: '03', name: 'Queso fresco', units: '18 kg', revenue: 'S/ 321.30' }
+  { rank: '03', name: 'Queso fresco', units: '18 kg', revenue: 'S/ 321.30' },
 ];
 
 function BellIcon() {
@@ -75,9 +75,7 @@ export default function Dashboard() {
               key={range}
               type="button"
               className={`flex h-8 flex-1 items-center justify-center rounded-full text-[11px] ${
-                index === 0
-                  ? 'bg-[#176B4D] font-bold text-white'
-                  : 'font-[550] text-[#65736B]'
+                index === 0 ? 'bg-[#176B4D] font-bold text-white' : 'font-[550] text-[#65736B]'
               }`}
             >
               {range}
@@ -88,9 +86,7 @@ export default function Dashboard() {
         <section className="flex shrink-0 flex-col gap-2 justify-between rounded-[20px] border border-[#E4E9DF] bg-white p-4">
           <span className="text-[11px] font-semibold text-[#65736B]">Dinero realizado</span>
           <div className="flex items-end gap-2">
-            <span className="text-2xl font-[820] leading-none tracking-[-1.4px]">
-              S/ 1,284.50
-            </span>
+            <span className="text-2xl font-[820] leading-none tracking-[-1.4px]">S/ 1,284.50</span>
           </div>
         </section>
 
@@ -103,7 +99,9 @@ export default function Dashboard() {
           </section>
 
           <section className="flex flex-1 flex-col justify-between rounded-[20px] border border-[#E4E9DF] bg-white p-3.5">
-            <span className="text-[10.5px] font-[550] text-[#65736B]">Producto estrella de hoy</span>
+            <span className="text-[10.5px] font-[550] text-[#65736B]">
+              Producto estrella de hoy
+            </span>
             <div className="flex w-full min-w-0 items-center justify-between gap-2">
               <span className="min-w-0 text-[12px] font-[750] tracking-[-0.2px]">
                 Coca Cola 500 ml
@@ -125,11 +123,12 @@ export default function Dashboard() {
           </div>
           <div className="flex w-full flex-1 items-end gap-1.5">
             {hourlySales.map((bar) => (
-              <div key={bar.hour} className="flex min-w-0 flex-1 flex-col items-center justify-end gap-2">
+              <div
+                key={bar.hour}
+                className="flex min-w-0 flex-1 flex-col items-center justify-end gap-2"
+              >
                 <span
-                  className={`text-[7px] ${
-                    bar.highlight ? 'text-[#104B37]' : 'text-[#65736B]'
-                  }`}
+                  className={`text-[7px] ${bar.highlight ? 'text-[#104B37]' : 'text-[#65736B]'}`}
                 >
                   {bar.value}
                 </span>
@@ -156,11 +155,15 @@ export default function Dashboard() {
               key={product.rank}
               className="flex w-full min-w-0 flex-1 items-center gap-2 py-2 border-b border-[#E4E9DF] last:border-b-0"
             >
-              <span className="shrink-0 text-[8.5px] font-[650] text-[#65736B]">{product.rank}</span>
+              <span className="shrink-0 text-[8.5px] font-[650] text-[#65736B]">
+                {product.rank}
+              </span>
               <span className="min-w-0 text-[10.5px] font-semibold">{product.name}</span>
               <span className="h-px flex-1" />
               <span className="shrink-0 text-[8.5px] text-[#65736B]">{product.units}</span>
-              <span className="shrink-0 text-[9.5px] font-bold text-[#104B37]">{product.revenue}</span>
+              <span className="shrink-0 text-[9.5px] font-bold text-[#104B37]">
+                {product.revenue}
+              </span>
             </div>
           ))}
         </section>

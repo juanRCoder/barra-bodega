@@ -2,11 +2,11 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { lazy } from 'react';
 
 const App = lazy(() => import('@/App'));
-const Dashboard = lazy(() => import('@/pages/Dashboard'));
+const Dashboard = lazy(() => import('@/pages/dashboard'));
 
 const route = createBrowserRouter([
   { path: '/', element: <App /> },
-  { path: '/dashboard', element: <Dashboard /> }
+  { path: '/dashboard', element: <Dashboard /> },
 ]);
 
 export const MainRouter = () => {
