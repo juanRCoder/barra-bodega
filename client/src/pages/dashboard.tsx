@@ -1,4 +1,5 @@
-const ranges = ['Hoy', 'Semana', 'Mes'];
+import { Sidebar } from '@/components/Sidebar';
+import { useState } from 'react';
 
 const hourlySales = [
   { hour: '08', value: 42, height: 35 },
@@ -12,111 +13,208 @@ const hourlySales = [
 ];
 
 const topProducts = [
-  { rank: '01', name: 'Coca Cola 500 ml', units: '48 unid.', revenue: 'S/ 336.00' },
+  {
+    rank: '01',
+    name: 'Coca Cola 500 ml',
+    units: '48 unid.',
+    revenue: 'S/ 336.00',
+  },
   { rank: '02', name: 'Pan francés', units: '32 unid.', revenue: 'S/ 144.00' },
   { rank: '03', name: 'Queso fresco', units: '18 kg', revenue: 'S/ 321.30' },
 ];
 
-function BellIcon() {
-  return (
-    <svg
-      width="15"
-      height="15"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-    </svg>
-  );
-}
-
 export default function Dashboard() {
+  const [activeRange, setActiveRange] = useState<string>('Hoy');
+  const ranges = ['Hoy', 'Semana', 'Mes'] as const;
+
   return (
     <div
       className="flex min-h-screen w-full justify-center bg-[#F7F8F2] text-[#17221D]"
       style={{ fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif' }}
     >
-      <main className="flex w-full max-w-97.5 flex-col gap-3 p-3 text-left">
-        <header className="flex h-8 shrink-0 items-center justify-between">
+      <section className="flex w-full max-w-97.5 flex-col gap-3 p-3 text-left">
+        <div
+          data-pencil-name="Top Bar"
+          className="box-border flex h-8 w-full shrink-0 items-center justify-between"
+        >
           <div className="flex items-center gap-2.25">
+            <Sidebar />
             <div className="flex h-7.5 w-7.5 items-center justify-center rounded-[9px] bg-[#D9F36A]">
-              <span className="text-[14px] font-bold text-[#104B37]">▥</span>
+              <span className="text-[20px] font-bold text-[#104B37]">▥</span>
             </div>
-            <span className="text-[14.5px] font-[850] tracking-[-0.5px]">BarraBodega</span>
-          </div>
-          <button
-            type="button"
-            aria-label="Notificaciones"
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-[#E4E9DF] bg-white text-[#104B37]"
-          >
-            <BellIcon />
-          </button>
-        </header>
-
-        <div className="flex shrink-0 items-center justify-between">
-          <div className="flex flex-col gap-0.5">
-            <h1 className="text-[23px] font-[850] leading-none tracking-[-1.1px]">Mi negocio</h1>
-            <p className="text-[10.5px] text-[#65736B]">Martes 12, 2026</p>
-          </div>
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#EAF2DF] text-[10px] font-[750] text-[#104B37]">
-            RP
-          </div>
-        </div>
-
-        <div className="flex shrink-0 items-center gap-2 rounded-full border border-[#E4E9DF] bg-white p-1">
-          {ranges.map((range, index) => (
-            <button
-              key={range}
-              type="button"
-              className={`flex h-8 flex-1 items-center justify-center rounded-full text-[11px] ${
-                index === 0 ? 'bg-[#176B4D] font-bold text-white' : 'font-[550] text-[#65736B]'
-              }`}
+            <div
+              data-pencil-name="Name"
+              className="whitespace-nowrap text-left text-[14.5px]/[normal] font-normal tracking-[-0.5px] text-[#17221D]"
             >
-              {range}
-            </button>
-          ))}
-        </div>
-
-        <section className="flex shrink-0 flex-col gap-2 justify-between rounded-[20px] border border-[#E4E9DF] bg-white p-4">
-          <span className="text-[11px] font-semibold text-[#65736B]">Dinero realizado</span>
-          <div className="flex items-end gap-2">
-            <span className="text-2xl font-[820] leading-none tracking-[-1.4px]">S/ 1,284.50</span>
+              BarraBodega
+            </div>
           </div>
-        </section>
-
-        <div className="flex min-h-24 shrink-0 flex-col gap-2.5 min-[360px]:flex-row">
-          <section className="flex flex-1 flex-col justify-between rounded-[20px] border border-[#E4E9DF] bg-white p-3.5">
-            <span className="text-[10.5px] font-[550] text-[#65736B]">Ventas totales de hoy</span>
-            <div className="flex items-end gap-1.5">
-              <span className="text-[32px] font-[820] leading-none tracking-[-0.8px]">68</span>
+        </div>
+        <div
+          data-pencil-name="Greeting"
+          className="box-border flex h-11.5 w-full shrink-0 items-center justify-between"
+        >
+          <div
+            data-pencil-name="Text"
+            className="box-border flex h-fit w-fit shrink-0 flex-col items-start justify-start gap-0.5"
+          >
+            <div
+              data-pencil-name="Title"
+              className="whitespace-nowrap text-left text-[23px]/[normal] font-normal tracking-[-1.1px] text-[#17221D]"
+            >
+              Mi negocio
             </div>
-          </section>
-
-          <section className="flex flex-1 flex-col justify-between rounded-[20px] border border-[#E4E9DF] bg-white p-3.5">
-            <span className="text-[10.5px] font-[550] text-[#65736B]">
-              Producto estrella de hoy
-            </span>
-            <div className="flex w-full min-w-0 items-center justify-between gap-2">
-              <span className="min-w-0 text-[12px] font-[750] tracking-[-0.2px]">
-                Coca Cola 500 ml
-              </span>
-              <span className="flex shrink-0 items-center rounded-full bg-[#D9F36A] px-1.5 py-0.5 text-[8.5px] font-[750] text-[#104B37]">
-                48
-              </span>
+            <div
+              data-pencil-name="Sub"
+              className="whitespace-nowrap text-left text-[10.5px]/[normal] font-normal text-[#65736B]"
+            >
+              Martes 12, 2026
             </div>
-            <span className="text-[9px] text-[#65736B]">S/ 336 en ingresos</span>
-          </section>
+          </div>
+          <div
+            data-pencil-name="Avatar"
+            className="box-border flex size-8 shrink-0 items-center justify-center rounded-full bg-[#EAF2DF]"
+          >
+            <div
+              data-pencil-name="Initials"
+              className="whitespace-nowrap text-left text-[10px]/[normal] font-normal text-[#104B37]"
+            >
+              RP
+            </div>
+          </div>
         </div>
 
+        {/* 3. Selector de Rango Dinámico */}
+        <div
+          data-pencil-name="Range"
+          className="box-border flex h-9.5 w-full shrink-0 items-center justify-start gap-0.75 rounded-full border border-[#E4E9DF] bg-white p-1"
+        >
+          {ranges.map((range) => {
+            const isActive = activeRange === range;
+
+            return (
+              <button
+                key={range}
+                type="button"
+                onClick={() => setActiveRange(range)}
+                className={`box-border flex h-7.5 flex-1 items-center justify-center rounded-full transition-colors duration-200 ${
+                  isActive
+                    ? 'bg-[#176B4D]'
+                    : 'bg-transparent hover:bg-[#F7F8F2]'
+                }`}
+              >
+                <div
+                  className={`whitespace-nowrap text-left text-[11px]/[normal] transition-colors duration-200 ${
+                    isActive
+                      ? 'font-bold text-white'
+                      : 'font-normal text-[#65736B]'
+                  }`}
+                >
+                  {range}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+        <div
+          data-pencil-name="Dinero realizado"
+          className="box-border flex h-21 w-full shrink-0 flex-col items-start justify-between rounded-[20px] border border-[#E4E9DF] bg-white p-4"
+        >
+          <div
+            data-pencil-name="Top"
+            className="box-border flex h-fit w-full shrink-0 items-center justify-between"
+          >
+            <div
+              data-pencil-name="Label"
+              className="whitespace-nowrap text-left text-[11px]/[normal] font-semibold text-[#65736B]"
+            >
+              Dinero realizado
+            </div>
+          </div>
+          <div
+            data-pencil-name="Value Row"
+            className="box-border flex h-fit w-full shrink-0 items-end justify-start gap-2"
+          >
+            <div
+              data-pencil-name="Value"
+              className="whitespace-nowrap text-left text-[24px]/[normal] font-normal tracking-[-1.4px] text-[#17221D]"
+            >
+              S/ 1,284.50
+            </div>
+          </div>
+        </div>
+
+        <div
+          data-pencil-name="Small KPIs"
+          className="box-border grid min-h-24 w-full shrink-0 grid-cols-2 items-start justify-start gap-2.5"
+        >
+          <div
+            data-pencil-name="Ventas totales"
+            className="box-border flex h-full flex-[1_1_0] flex-col items-start justify-between rounded-[20px] border border-[#E4E9DF] bg-white p-3.5"
+          >
+            <div
+              data-pencil-name="Label"
+              className="text-left text-[10.5px]/[normal] font-normal text-[#65736B]"
+            >
+              Ventas totales de hoy
+            </div>
+            <div
+              data-pencil-name="Value Row"
+              className="box-border flex h-fit w-fit shrink-0 items-end justify-start gap-1.5"
+            >
+              <div
+                data-pencil-name="Value"
+                className="whitespace-nowrap text-left text-[32px]/[normal] font-normal tracking-[-0.8px] text-[#17221D]"
+              >
+                68
+              </div>
+            </div>
+          </div>
+          <div
+            data-pencil-name="Producto estrella"
+            className="box-border flex h-full flex-[1_1_0] flex-col items-start justify-between rounded-[20px] border border-[#E4E9DF] bg-white p-3.5"
+          >
+            <div
+              data-pencil-name="Label"
+              className="pb-1 text-left text-[10.5px]/[normal] font-normal text-[#65736B]"
+            >
+              Producto estrella de hoy
+            </div>
+            <div
+              data-pencil-name="Name Row"
+              className="box-border flex h-fit w-full shrink-0 items-center justify-start gap-1.25"
+            >
+              <div
+                data-pencil-name="Name"
+                className="text-left text-[12px]/[normal] font-normal tracking-[-0.2px] text-[#17221D]"
+              >
+                Coca Cola 500 ml Coca Cola 500 ml
+              </div>
+              <div
+                data-pencil-name="Badge"
+                className="box-border shrink-0 flex flex-row gap-0 size-6.5 justify-center items-center bg-[#D9F36A] rounded-[999px]"
+              >
+                <div
+                  data-pencil-name="Text"
+                  className="whitespace-nowrap text-left text-xs/[normal] font-normal text-[#104B37]"
+                >
+                  48
+                </div>
+              </div>
+            </div>
+            <div
+              data-pencil-name="Note"
+              className="text-left text-[9px]/[normal] font-normal text-[#65736B]"
+            >
+              S/ 336 en ingresos
+            </div>
+          </div>
+        </div>
         <section className="flex shrink-0 flex-col gap-2 rounded-[20px] border border-[#E4E9DF] bg-white p-3">
           <div className="flex w-full items-center justify-between gap-2">
-            <h2 className="min-w-0 text-[12.5px] font-[750]">Ventas de hoy - Viernes 30</h2>
+            <h2 className="min-w-0 text-[12.5px] font-[750]">
+              Ventas de hoy - Viernes 30
+            </h2>
             <span className="flex shrink-0 items-center rounded-full bg-[#EAF2DF] px-2 py-0.5 text-[8.5px] font-bold text-[#104B37]">
               S/ 1,284.50
             </span>
@@ -143,31 +241,48 @@ export default function Dashboard() {
           </div>
         </section>
 
-        <section className="flex shrink-0 flex-col rounded-[20px] border border-[#E4E9DF] bg-white p-3.5">
-          <div className="flex w-full items-center justify-between pb-1.5">
-            <h2 className="text-[12.5px] font-[750]">Top 3 vendidos</h2>
-            <button type="button" className="text-[9.5px] font-[650] text-[#176B4D]">
+        <div
+          data-pencil-name="Top vendidos"
+          className="box-border flex h-49.75 w-full shrink-0 flex-col items-start justify-start rounded-[20px] border border-[#E4E9DF] bg-white p-3.5"
+        >
+          <div
+            data-pencil-name="Header"
+            className="box-border flex h-fit w-full shrink-0 items-center justify-between pb-1.5"
+          >
+            <div
+              data-pencil-name="Title"
+              className="whitespace-nowrap text-left text-[12.5px]/[normal] font-normal text-[#17221D]"
+            >
+              Top 3 vendidos
+            </div>
+            <div
+              data-pencil-name="Link"
+              className="whitespace-nowrap text-left text-[9.5px]/[normal] font-normal text-[#176B4D]"
+            >
               Ver todos
-            </button>
+            </div>
           </div>
           {topProducts.map((product) => (
             <div
               key={product.rank}
-              className="flex w-full min-w-0 flex-1 items-center gap-2 py-2 border-b border-[#E4E9DF] last:border-b-0"
+              className="box-border flex h-12.5 w-full flex-[1_1_0] items-center justify-start gap-2 border-b border-[#E4E9DF] last:border-b-0"
             >
-              <span className="shrink-0 text-[8.5px] font-[650] text-[#65736B]">
+              <span className="whitespace-nowrap text-left text-[8.5px]/[normal] text-[#65736B]">
                 {product.rank}
               </span>
-              <span className="min-w-0 text-[10.5px] font-semibold">{product.name}</span>
-              <span className="h-px flex-1" />
-              <span className="shrink-0 text-[8.5px] text-[#65736B]">{product.units}</span>
-              <span className="shrink-0 text-[9.5px] font-bold text-[#104B37]">
+              <span className="min-w-0 flex-1 text-left text-[10.5px]/[normal] font-semibold text-[#17221D]">
+                {product.name}
+              </span>
+              <span className="whitespace-nowrap text-left text-[8.5px]/[normal] text-[#65736B]">
+                {product.units}
+              </span>
+              <span className="whitespace-nowrap text-left text-[9.5px]/[normal] font-bold text-[#104B37]">
                 {product.revenue}
               </span>
             </div>
           ))}
-        </section>
-      </main>
+        </div>
+      </section>
     </div>
   );
 }
