@@ -1,6 +1,6 @@
+import { RegisterPayment } from '@/components/RegisterPayment';
 import {
   Banknote,
-  Check,
   ChevronLeft,
   ChevronRight,
   Layers,
@@ -243,19 +243,7 @@ export default function AccountDetail() {
               data-pencil-name="Buttons"
               className="box-border w-full h-fit shrink-0 flex flex-row gap-1.75 justify-start items-start flex-wrap"
             >
-              <button
-                type="button"
-                data-pencil-name="Register Payment"
-                className="box-border flex-1 h-10 flex flex-row gap-1.5 justify-center items-center bg-[#176B4D] rounded-full cursor-pointer hover:bg-[#104B37] transition-colors"
-              >
-                <Check className="box-border size-3.5 shrink-0 text-white" />
-                <div
-                  data-pencil-name="Label"
-                  className="text-[11px]/[normal] box-border text-white font-[Inter,system-ui,sans-serif] font-bold text-left whitespace-nowrap"
-                >
-                  Registrar pago
-                </div>
-              </button>
+              <RegisterPayment />
               <button
                 type="button"
                 data-pencil-name="Add Product"

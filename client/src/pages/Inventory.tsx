@@ -2,39 +2,20 @@ import { Sidebar } from '@/components/Sidebar';
 import {
   ChevronLeft,
   ChevronRight,
-  Pencil,
   Plus,
   Search,
   Triangle,
 } from 'lucide-react';
 import { useState } from 'react';
+import { ProductCard } from '@/components/ProductCard';
+import type { ProductData } from '@/types/inventory.type';
+import { useNavigate } from 'react-router-dom';
 
 // --- Datos de ejemplo ---
-const productsData = [
-  {
-    id: '1',
-    name: 'Coca Cola 500 ml',
-    price: 'S/ 7.00',
-    unit: '/ unid.',
-    stock: '24 en stock',
-    stockStatus: 'normal', // 'normal' | 'warning' | 'danger'
-  },
-  {
-    id: '2',
-    name: 'Queso fresco',
-    price: 'S/ 38.90',
-    unit: '/ kg',
-    stock: '9 en stock',
-    stockStatus: 'warning',
-  },
-  {
-    id: '3',
-    name: 'Azúcar rubia 1 kg',
-    price: 'S/ 4.50',
-    unit: 'kg',
-    stock: 'Sin stock',
-    stockStatus: 'danger',
-  },
+const products: ProductData[] = [
+  { id: '1', name: 'Coca Cola 500 ml', price: 7, unit: '/ unid.', stock: 24 },
+  { id: '2', name: 'Queso fresco', price: 38.9, unit: '/ kg', stock: 9 },
+  { id: '3', name: 'Azúcar rubia 1 kg', price: 4.5, unit: 'kg', stock: 0 },
 ];
 
 const totalPages = 10;
@@ -69,52 +50,8 @@ const getVisiblePages = (currentPage: number, pageCount: number) => {
   ] as const;
 };
 
-// --- Subcomponente para la tarjeta del producto ---
-const ProductCard = ({ product }: { product: (typeof productsData)[0] }) => {
-  const stockColor = {
-    normal: 'text-[#65736B]',
-    warning: 'text-[#C98A1A]',
-    danger: 'text-[#B5392B]',
-  }[product.stockStatus];
-
-  return (
-    <div className="box-border w-full h-17 shrink-0 flex flex-col gap-0 px-3 py-2.5 justify-between items-start bg-[#FFFFFF] border border-[#E4E9DF] rounded-2xl">
-      {/* Top: Nombre y Botón Editar */}
-      <div className="box-border w-full h-fit shrink-0 flex flex-row gap-2 justify-between items-center">
-        <div className="text-[12px]/[14px] box-border text-[#17221D] font-[Inter,system-ui,sans-serif] font-medium tracking-[-0.2px] text-left truncate flex-1 min-w-0">
-          {product.name}
-        </div>
-        <button
-          type="button"
-          aria-label={`Editar ${product.name}`}
-          className="box-border size-6.5 shrink-0 flex flex-row gap-0 justify-center items-center bg-[#F7F8F2] border border-[#E4E9DF] rounded-[13px] hover:bg-[#E4E9DF] transition-colors cursor-pointer"
-        >
-          <Pencil className="box-border size-3.5 shrink-0 text-[#176B4D]" />
-        </button>
-      </div>
-
-      {/* Bottom: Precio y Stock */}
-      <div className="box-border w-full h-fit shrink-0 flex flex-row gap-2 justify-between items-end">
-        <div className="box-border w-fit shrink-0 h-fit flex flex-row gap-0.5 justify-start items-end">
-          <div className="text-[13px]/[normal] box-border text-[#176B4D] font-[Inter,system-ui,sans-serif] font-extrabold tracking-[-0.3px] text-left whitespace-nowrap">
-            {product.price}
-          </div>
-          <div className="text-[7px]/[normal] box-border text-[#65736B] font-[Inter,system-ui,sans-serif] font-normal text-left whitespace-nowrap">
-            {product.unit}
-          </div>
-        </div>
-        <div
-          className={`text-[7.5px]/[normal] box-border font-[Inter,system-ui,sans-serif] font-semibold text-left whitespace-nowrap ${stockColor}`}
-        >
-          {product.stock}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// --- Componente Principal ---
 export default function Inventory() {
+  const navigate = useNavigate()
   const [currentPage, setCurrentPage] = useState(1);
   const visiblePages = getVisiblePages(currentPage, totalPages);
 
@@ -137,7 +74,7 @@ export default function Inventory() {
               </div>
             </div>
           </div>
-          <button className="box-border w-fit shrink-0 h-8.5 flex flex-row gap-1.5 px-3.25 py-0 justify-start items-center bg-[#D9F36A] rounded-full hover:bg-[#c9e15e] transition-colors cursor-pointer">
+          <button onClick={() => navigate('/scan/product')} className="box-border w-fit shrink-0 h-8.5 flex flex-row gap-1.5 px-3.25 py-0 justify-start items-center bg-[#D9F36A] rounded-full hover:bg-[#c9e15e] transition-colors cursor-pointer">
             <Plus className="box-border size-3.5 shrink-0 text-[#104B37]" />
             <div className="text-[11px]/[normal] box-border text-[#104B37] font-[Inter,system-ui,sans-serif] font-bold text-left whitespace-nowrap">
               Agregar
@@ -170,7 +107,7 @@ export default function Inventory() {
 
         {/* GRID DE PRODUCTOS DINÁMICO */}
         <div className="box-border w-full flex-1 flex flex-col gap-2 justify-start items-start">
-          {productsData.map((product) => (
+          {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
 
@@ -207,14 +144,12 @@ export default function Inventory() {
                     type="button"
                     onClick={() => setCurrentPage(page)}
                     aria-current={isActive ? 'page' : undefined}
-                    className={`box-border flex size-6.5 shrink-0 cursor-pointer items-center justify-center rounded-[9px] transition-colors ${
-                      isActive ? 'bg-[#104B37]' : 'hover:bg-[#E4E9DF]'
-                    }`}
+                    className={`box-border flex size-6.5 shrink-0 cursor-pointer items-center justify-center rounded-[9px] transition-colors ${isActive ? 'bg-[#104B37]' : 'hover:bg-[#E4E9DF]'
+                      }`}
                   >
                     <span
-                      className={`whitespace-nowrap text-left text-[9.5px]/[normal] font-bold ${
-                        isActive ? 'text-white' : 'text-[#65736B]'
-                      }`}
+                      className={`whitespace-nowrap text-left text-[9.5px]/[normal] font-bold ${isActive ? 'text-white' : 'text-[#65736B]'
+                        }`}
                     >
                       {page}
                     </span>
