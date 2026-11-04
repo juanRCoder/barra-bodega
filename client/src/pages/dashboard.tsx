@@ -1,5 +1,6 @@
 import { Sidebar } from '@/components/Sidebar';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const hourlySales = [
   { hour: '08', value: 42, height: 35 },
@@ -24,6 +25,7 @@ const topProducts = [
 ];
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [activeRange, setActiveRange] = useState<string>('Hoy');
   const ranges = ['Hoy', 'Semana', 'Mes'] as const;
 
@@ -97,7 +99,7 @@ export default function Dashboard() {
                 key={range}
                 type="button"
                 onClick={() => setActiveRange(range)}
-                className={`box-border flex h-7.5 flex-1 items-center justify-center rounded-full transition-colors duration-200 ${
+                className={`box-border flex h-7.5 flex-1 items-center justify-center rounded-full transition-colors duration-200 cursor-pointer ${
                   isActive
                     ? 'bg-[#176B4D]'
                     : 'bg-transparent hover:bg-[#F7F8F2]'
@@ -257,7 +259,8 @@ export default function Dashboard() {
             </div>
             <div
               data-pencil-name="Link"
-              className="whitespace-nowrap text-left text-[9.5px]/[normal] font-normal text-[#176B4D]"
+              onClick={() => navigate('/best-sellers')}
+              className="whitespace-nowrap text-left text-[9.5px]/[normal] font-normal text-[#176B4D] hover:underline cursor-pointer"
             >
               Ver todos
             </div>
