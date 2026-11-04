@@ -8,9 +8,9 @@ const PAYMENT_METHODS: {
   label: string;
   Icon: typeof Banknote;
 }[] = [
-    { id: 'cash', label: 'Efectivo', Icon: Banknote },
-    { id: 'yape', label: 'Yape/Plin', Icon: CreditCard },
-  ];
+  { id: 'cash', label: 'Efectivo', Icon: Banknote },
+  { id: 'yape', label: 'Yape/Plin', Icon: CreditCard },
+];
 
 const BALANCE = 24.5;
 
@@ -57,8 +57,11 @@ export const RegisterPayment = () => {
 
       {/* Overlay */}
       <div
-        className={`fixed inset-0 z-50 flex transition-opacity duration-300 ease-in-out ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-          }`}
+        className={`fixed inset-0 z-50 flex transition-opacity duration-300 ease-in-out ${
+          isOpen
+            ? 'opacity-100 pointer-events-auto'
+            : 'opacity-0 pointer-events-none'
+        }`}
         role="presentation"
         aria-hidden={!isOpen}
       >
@@ -110,7 +113,10 @@ export const RegisterPayment = () => {
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="box-border w-full flex flex-col gap-3">
+          <form
+            onSubmit={handleSubmit}
+            className="box-border w-full flex flex-col gap-3"
+          >
             {/* Amount */}
             <div
               data-pencil-name="Amount"
@@ -179,10 +185,11 @@ export const RegisterPayment = () => {
                     <label
                       key={id}
                       data-pencil-name={`Method ${label}`}
-                      className={`box-border flex-[1_1_0] h-11.5 flex flex-row gap-1.75 justify-center items-center rounded-xl cursor-pointer transition-colors ${isActive
+                      className={`box-border flex-[1_1_0] h-11.5 flex flex-row gap-1.75 justify-center items-center rounded-xl cursor-pointer transition-colors ${
+                        isActive
                           ? 'bg-[#EAF2DF] [outline:1.5px_solid_#176B4D] [outline-offset:-0.75px]'
                           : 'bg-[#FFFFFF] [outline:1px_solid_#E4E9DF] [outline-offset:-0.5px] hover:bg-[#F7F8F2]'
-                        }`}
+                      }`}
                     >
                       <input
                         type="radio"
@@ -193,14 +200,16 @@ export const RegisterPayment = () => {
                         className="sr-only"
                       />
                       <Icon
-                        className={`box-border size-3.5 shrink-0 ${isActive ? 'text-[#176B4D]' : 'text-[#65736B]'
-                          }`}
+                        className={`box-border size-3.5 shrink-0 ${
+                          isActive ? 'text-[#176B4D]' : 'text-[#65736B]'
+                        }`}
                       />
                       <span
-                        className={`text-[10px]/[normal] box-border font-[Inter,system-ui,sans-serif] text-left whitespace-nowrap ${isActive
+                        className={`text-[10px]/[normal] box-border font-[Inter,system-ui,sans-serif] text-left whitespace-nowrap ${
+                          isActive
                             ? 'text-[#104B37] font-bold'
                             : 'text-[#65736B] font-normal'
-                          }`}
+                        }`}
                       >
                         {label}
                       </span>

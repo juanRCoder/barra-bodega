@@ -43,8 +43,11 @@ export const UpdateProduct = ({
 
       {/* Overlay */}
       <div
-        className={`fixed inset-0 z-50 flex transition-opacity duration-300 ease-in-out ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-          }`}
+        className={`fixed inset-0 z-50 flex transition-opacity duration-300 ease-in-out ${
+          isOpen
+            ? 'opacity-100 pointer-events-auto'
+            : 'opacity-0 pointer-events-none'
+        }`}
         role="presentation"
         aria-hidden={!isOpen}
       >
@@ -99,7 +102,10 @@ export const UpdateProduct = ({
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="box-border w-full flex flex-col gap-3">
+          <form
+            onSubmit={handleSubmit}
+            className="box-border w-full flex flex-col gap-3"
+          >
             <div
               data-pencil-name="Fields"
               className="box-border w-full h-fit shrink-0 flex flex-row gap-2.5 justify-start items-start"
@@ -177,7 +183,9 @@ export const UpdateProduct = ({
                     autoComplete="off"
                     required
                     value={stock}
-                    onChange={(e) => setStock(e.target.value.replace(/\D/g, ''))}
+                    onChange={(e) =>
+                      setStock(e.target.value.replace(/\D/g, ''))
+                    }
                     placeholder="0"
                     className="box-border flex-1 min-w-0 h-full bg-transparent border-0 outline-none p-0 m-0 text-base/[normal] text-[#17221D] font-[Inter,system-ui,sans-serif] font-normal tracking-[-0.3px] text-left placeholder:text-[#B7C0BA]"
                   />

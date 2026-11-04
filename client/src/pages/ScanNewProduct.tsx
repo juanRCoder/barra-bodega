@@ -1,15 +1,15 @@
-import { ArrowLeft, Barcode, CircleCheck, Plus } from "lucide-react";
-import { useEffect, useRef, useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { ArrowLeft, Barcode, CircleCheck, Plus } from 'lucide-react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function NewProduct() {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const [name, setName] = useState("");
-  const [barcode, setBarcode] = useState("7501055300012");
-  const [price, setPrice] = useState("");
-  const [stock, setStock] = useState("0");
+  const [name, setName] = useState('');
+  const [barcode, setBarcode] = useState('7501055300012');
+  const [price, setPrice] = useState('');
+  const [stock, setStock] = useState('0');
   const [cameraError, setCameraError] = useState(false);
 
   useEffect(() => {
@@ -18,14 +18,14 @@ export default function NewProduct() {
     const startCamera = async () => {
       try {
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" },
+          video: { facingMode: 'environment' },
           audio: false,
         });
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
         }
       } catch (err) {
-        console.error("No se pudo acceder a la cámara:", err);
+        console.error('No se pudo acceder a la cámara:', err);
         setCameraError(true);
       }
     };
@@ -47,13 +47,13 @@ export default function NewProduct() {
     };
     console.log(payload);
     // TODO: llamar API
-    navigate("/inventory");
+    navigate('/inventory');
   };
 
   return (
     <div
       className="flex h-screen w-full justify-center overflow-hidden bg-[#F7F8F2] text-[#17221D]"
-      style={{ fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif" }}
+      style={{ fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif' }}
     >
       <section className="flex h-full w-full max-w-97.5 flex-col overflow-hidden text-left">
         {/* ===== Scanner con cámara ===== */}
@@ -84,7 +84,7 @@ export default function NewProduct() {
             <button
               type="button"
               aria-label="Volver"
-              onClick={() => navigate("/inventory")}
+              onClick={() => navigate('/inventory')}
               className="box-border size-8.5 shrink-0 cursor-pointer rounded-[17px] bg-[#FFFFFF14] flex items-center justify-center"
             >
               <ArrowLeft className="size-4 shrink-0 text-white" />
@@ -167,7 +167,7 @@ export default function NewProduct() {
                 type="text"
                 inputMode="numeric"
                 value={barcode}
-                onChange={(e) => setBarcode(e.target.value.replace(/\D/g, ""))}
+                onChange={(e) => setBarcode(e.target.value.replace(/\D/g, ''))}
                 className="m-0 h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-left text-[11.5px]/[normal] font-[Inter,system-ui,sans-serif] font-semibold tracking-[0.4px] text-[#17221D] outline-none"
               />
               <div className="flex h-fit w-fit shrink-0 flex-row items-center justify-start gap-0 rounded-full bg-[#EAF2DF] p-[3px_8px]">
@@ -200,8 +200,8 @@ export default function NewProduct() {
                   value={price}
                   onChange={(e) => {
                     const clean = e.target.value
-                      .replace(/[^\d.]/g, "")
-                      .replace(/(\..*)\./g, "$1");
+                      .replace(/[^\d.]/g, '')
+                      .replace(/(\..*)\./g, '$1');
                     setPrice(clean);
                   }}
                   onBlur={(e) => {
@@ -232,7 +232,7 @@ export default function NewProduct() {
                   inputMode="numeric"
                   required
                   value={stock}
-                  onChange={(e) => setStock(e.target.value.replace(/\D/g, ""))}
+                  onChange={(e) => setStock(e.target.value.replace(/\D/g, ''))}
                   placeholder="0"
                   className="m-0 h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-left text-[13px]/[normal] font-[Inter,system-ui,sans-serif] font-semibold text-[#17221D] outline-none placeholder:text-[#65736B]"
                 />

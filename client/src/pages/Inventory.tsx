@@ -51,7 +51,7 @@ const getVisiblePages = (currentPage: number, pageCount: number) => {
 };
 
 export default function Inventory() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const visiblePages = getVisiblePages(currentPage, totalPages);
 
@@ -74,7 +74,10 @@ export default function Inventory() {
               </div>
             </div>
           </div>
-          <button onClick={() => navigate('/scan/product')} className="box-border w-fit shrink-0 h-8.5 flex flex-row gap-1.5 px-3.25 py-0 justify-start items-center bg-[#D9F36A] rounded-full hover:bg-[#c9e15e] transition-colors cursor-pointer">
+          <button
+            onClick={() => navigate('/scan/product')}
+            className="box-border w-fit shrink-0 h-8.5 flex flex-row gap-1.5 px-3.25 py-0 justify-start items-center bg-[#D9F36A] rounded-full hover:bg-[#c9e15e] transition-colors cursor-pointer"
+          >
             <Plus className="box-border size-3.5 shrink-0 text-[#104B37]" />
             <div className="text-[11px]/[normal] box-border text-[#104B37] font-[Inter,system-ui,sans-serif] font-bold text-left whitespace-nowrap">
               Agregar
@@ -144,12 +147,14 @@ export default function Inventory() {
                     type="button"
                     onClick={() => setCurrentPage(page)}
                     aria-current={isActive ? 'page' : undefined}
-                    className={`box-border flex size-6.5 shrink-0 cursor-pointer items-center justify-center rounded-[9px] transition-colors ${isActive ? 'bg-[#104B37]' : 'hover:bg-[#E4E9DF]'
-                      }`}
+                    className={`box-border flex size-6.5 shrink-0 cursor-pointer items-center justify-center rounded-[9px] transition-colors ${
+                      isActive ? 'bg-[#104B37]' : 'hover:bg-[#E4E9DF]'
+                    }`}
                   >
                     <span
-                      className={`whitespace-nowrap text-left text-[9.5px]/[normal] font-bold ${isActive ? 'text-white' : 'text-[#65736B]'
-                        }`}
+                      className={`whitespace-nowrap text-left text-[9.5px]/[normal] font-bold ${
+                        isActive ? 'text-white' : 'text-[#65736B]'
+                      }`}
                     >
                       {page}
                     </span>

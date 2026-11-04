@@ -2,8 +2,8 @@ import type { ProductData } from '@/types/inventory.type';
 import { UpdateProduct } from './UpdateProduct';
 
 type props = {
-  product: ProductData
-}
+  product: ProductData;
+};
 
 const getStockStatus = (stock: number) => {
   if (stock <= 0) return 'danger';
