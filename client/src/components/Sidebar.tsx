@@ -73,8 +73,8 @@ export const Sidebar = () => {
 
   // Rutas de atajos (puedes ajustar las rutas según tus necesidades)
   const shortcuts = [
-    { icon: ScanBarcode, label: 'Escanear producto', href: '/scan' },
-    { icon: UserPlus, label: 'Nueva cuenta', href: '/accounts/new' },
+    { icon: ScanBarcode, label: 'Nuevo pedido', href: '/scan/new-order' },
+    // { icon: UserPlus, label: 'Nueva cuenta', href: '/accounts/new' },
   ];
 
   return (

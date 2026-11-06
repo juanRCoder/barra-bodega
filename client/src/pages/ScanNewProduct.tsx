@@ -12,31 +12,6 @@ export default function NewProduct() {
   const [stock, setStock] = useState('0');
   const [cameraError, setCameraError] = useState(false);
 
-  useEffect(() => {
-    let stream: MediaStream | null = null;
-
-    const startCamera = async () => {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment' },
-          audio: false,
-        });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-      } catch (err) {
-        console.error('No se pudo acceder a la cámara:', err);
-        setCameraError(true);
-      }
-    };
-
-    startCamera();
-
-    return () => {
-      stream?.getTracks().forEach((track) => track.stop());
-    };
-  }, []);
-
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const payload = {
@@ -59,7 +34,7 @@ export default function NewProduct() {
         {/* ===== Scanner con cámara ===== */}
         <div
           data-pencil-name="Camera"
-          className="relative box-border w-full flex-1 min-h-0 overflow-hidden bg-black"
+          className="relative box-border w-full h-[30%] flex-1 min-h-0 overflow-hidden bg-black"
         >
           {/* Video de la cámara trasera (reemplaza el gradiente) */}
           <video
@@ -92,8 +67,8 @@ export default function NewProduct() {
           </div>
 
           {/* Scan Frame centrado — se mantiene con sus barras */}
-          <div className="absolute inset-0 z-2 flex items-center justify-center">
-            <div className="relative h-32.5 w-full max-w-64.5">
+          <div className="absolute inset-0 z-2 flex items-center justify-center mb-4">
+            <div className="relative h-30 w-full max-w-64.5">
               <div className="absolute -left-1.5 -top-1.5 box-content h-[26.5px] w-[26.5px] border-solid border-[#D9F36A] [border-width:3px_0_0_3px]" />
               <div className="absolute -right-1.5 -top-1.5 box-content h-[26.5px] w-[26.5px] border-solid border-[#D9F36A] [border-width:3px_3px_0_0]" />
               <div className="absolute -bottom-1.5 -left-1.5 box-content h-[26.5px] w-[26.5px] border-solid border-[#D9F36A] [border-width:0_0_3px_3px]" />
@@ -113,7 +88,7 @@ export default function NewProduct() {
         <form
           onSubmit={handleSubmit}
           data-pencil-name="Nuevo producto Sheet"
-          className="box-border flex w-full shrink-0 flex-col items-start justify-start gap-3 rounded-t-3xl bg-[#FFFFFF] px-4.5 pt-2.5 pb-5 [box-shadow:0px_-20px_60px_#13362633]"
+          className="box-border flex w-full h-[70%] shrink-0 flex-col items-start justify-start gap-3 rounded-t-3xl bg-[#FFFFFF] px-4.5 pt-2.5 pb-5 [box-shadow:0px_-20px_60px_#13362633]"
         >
           <div className="flex h-1 w-full shrink-0 flex-row items-start justify-center gap-0">
             <div className="h-1 w-9 shrink-0 rounded-full bg-[#E4E9DF]" />

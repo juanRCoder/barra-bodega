@@ -7,6 +7,7 @@ const Accounts = lazy(() => import('@/pages/Accounts'));
 const AccountDetail = lazy(() => import('@/pages/AccountDetail'));
 const Inventory = lazy(() => import('@/pages/Inventory'));
 const ScanNewProduct = lazy(() => import('@/pages/ScanNewProduct'));
+const ScanNewOrder = lazy(() => import('@/pages/ScanNewOrder'));
 
 const route = createBrowserRouter([
   { path: '/', element: <Dashboard /> },
@@ -15,6 +16,7 @@ const route = createBrowserRouter([
   { path: '/accounts/:id', element: <AccountDetail /> },
   { path: '/inventory', element: <Inventory /> },
   { path: '/scan/product', element: <ScanNewProduct /> },
+  { path: '/scan/new-order', element: <ScanNewOrder /> },
   { path: '*', element: <div>404</div> },
 ]);
 
