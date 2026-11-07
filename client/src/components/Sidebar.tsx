@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Box,
   LayoutDashboard,
   UsersRound,
   X,
   ScanBarcode,
-  UserPlus,
   Phone,
   LogOut,
   type LucideIcon,
@@ -62,6 +61,7 @@ const NavItem = ({
 // --- Componente Principal ---
 
 export const Sidebar = () => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
 
   // Rutas de navegación principal
@@ -205,7 +205,10 @@ export const Sidebar = () => {
               </div>
             </div>
 
-            <div className="box-border w-full h-9 shrink-0 flex flex-row gap-2.75 p-[0px_10px] justify-start items-center rounded-[13px] hover:bg-[#65736B]/10 cursor-pointer pb-1">
+            <div
+              onClick={() => navigate('/auth/login')}
+              className="box-border w-full h-9 shrink-0 flex flex-row gap-2.75 p-[0px_10px] justify-start items-center rounded-[13px] hover:bg-[#65736B]/10 cursor-pointer pb-1"
+            >
               <LogOut
                 className="h-4 w-4 shrink-0 text-[#B5392B]"
                 strokeWidth={1.8}
