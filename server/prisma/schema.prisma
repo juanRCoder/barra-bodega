@@ -1,0 +1,180 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// --- ENUMS ---
+
+enum Role {
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum PaymentType {
+  YAPE
+  CASH
+}
+
+enum OrderStatus {
+  PAID
+  PENDING
+  CANCELLED
+}
+
+// --- MODELS ---
+
+model User {
+  id            String   @id @default(uuid()) @db.Uuid
+  name          String
+  business_name String?
+  phone         String   @unique
+  email         String   @unique
+  password_hash String
+  role          Role     @default(ADMIN)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  // Relaciones
+  sessions      Session[]
+  productsAdmin ProductsAdmin[]
+  accounts      Account[]
+  orders        Order[]
+
+  @@map("Users")
+}
+
+model Session {
+  id                 String    @id @default(uuid()) @db.Uuid
+  user_id            String    @db.Uuid
+  refresh_token_hash String    @unique
+  family_id          String    @db.Uuid
+  revoked_at         DateTime?
+  expires_at         DateTime
+  created_at         DateTime  @default(now())
+
+  // Relaciones
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([family_id])
+  @@index([expires_at])
+  @@map("Sessions")
+}
+
+model Product {
+  id         String   @id @default(uuid()) @db.Uuid
+  name       String
+  code       String   @unique
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relaciones
+  productsAdmin ProductsAdmin[]
+
+  @@index([code])
+  @@index([name])
+  @@map("Products")
+}
+
+model ProductsAdmin {
+  id         String   @id @default(uuid()) @db.Uuid
+  admin_id   String   @db.Uuid
+  product_id String   @db.Uuid
+  price      Decimal  @db.Decimal(10, 2)
+  stock      Int      @default(0)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relaciones
+  admin         User           @relation(fields: [admin_id], references: [id], onDelete: Cascade)
+  product       Product        @relation(fields: [product_id], references: [id], onDelete: Restrict)
+  productsOrder ProductsOrder[]
+
+  @@unique([admin_id, product_id])
+  @@index([admin_id])
+  @@index([product_id])
+  @@map("ProductsAdmin")
+}
+
+model Account {
+  id         String   @id @default(uuid()) @db.Uuid
+  admin_id   String   @db.Uuid
+  name       String
+  phone      String
+  debt       Decimal  @default(0) @db.Decimal(10, 2)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relaciones
+  admin           User             @relation(fields: [admin_id], references: [id], onDelete: Cascade)
+  accountPayments AccountPayment[]
+  orders          Order[]
+
+  @@unique([admin_id, phone])
+  @@index([admin_id])
+  @@map("Accounts")
+}
+
+model AccountPayment {
+  id         String   @id @default(uuid()) @db.Uuid
+  account_id String   @db.Uuid
+  amount     Decimal  @db.Decimal(10, 2)
+  created_at DateTime @default(now())
+
+  // Relaciones
+  account Account @relation(fields: [account_id], references: [id], onDelete: Cascade)
+
+  @@index([account_id])
+  @@index([created_at])
+  @@map("AccountPayments")
+}
+
+model Order {
+  id           String      @id @default(uuid()) @db.Uuid
+  admin_id     String      @db.Uuid
+  payment_type PaymentType @default(CASH)
+  account_id   String?     @db.Uuid
+  status       OrderStatus @default(PAID)
+  total        Decimal     @db.Decimal(10, 2)
+  created_at   DateTime    @default(now())
+  updated_at   DateTime    @updatedAt
+
+  // Relaciones
+  admin         User            @relation(fields: [admin_id], references: [id], onDelete: Restrict)
+  account       Account?        @relation(fields: [account_id], references: [id], onDelete: Restrict)
+  productsOrder ProductsOrder[]
+
+  @@index([admin_id])
+  @@index([account_id])
+  @@index([status])
+  @@index([created_at])
+  @@map("Orders")
+}
+
+model ProductsOrder {
+  id               String   @id @default(uuid()) @db.Uuid
+  order_id         String   @db.Uuid
+  product_admin_id String   @db.Uuid
+  quantity         Int      @default(1)
+  price            Decimal  @db.Decimal(10, 2)
+  subtotal         Decimal  @db.Decimal(10, 2)
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  // Relaciones
+  order        Order         @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  productAdmin ProductsAdmin @relation(fields: [product_admin_id], references: [id], onDelete: Restrict)
+
+  @@index([order_id])
+  @@index([product_admin_id])
+  @@map("ProductsOrder")
+}

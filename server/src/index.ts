@@ -1,6 +1,9 @@
 import express from 'express';
 import cors from 'cors';
-import apiRouter from '@/routes/route';
+import { PrismaClient } from '../generated/prisma/client.js';
+import { PrismaPg } from '@prisma/adapter-pg';
+import apiRouter from '@/routes/route.js';
+import 'dotenv/config';
 
 const app = express();
 app.use(
@@ -12,6 +15,17 @@ app.use(
   })
 );
 app.use(express.json());
+
+// 4. Validación de la URL de la base de datos
+if (!process.env.DATABASE_URL) {
+  throw new Error('Falta la variable DATABASE_URL en el archivo .env');
+}
+
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL,
+});
+
+const prisma = new PrismaClient({ adapter });
 
 app.use('/api', apiRouter);
 

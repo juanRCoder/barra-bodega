@@ -1,5 +1,5 @@
 import { ArrowLeft, Barcode, CircleCheck, Plus } from 'lucide-react';
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function NewProduct() {
@@ -10,7 +10,7 @@ export default function NewProduct() {
   const [barcode, setBarcode] = useState('7501055300012');
   const [price, setPrice] = useState('');
   const [stock, setStock] = useState('0');
-  const [cameraError, setCameraError] = useState(false);
+  const [cameraError] = useState(false);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
