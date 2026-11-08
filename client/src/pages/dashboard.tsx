@@ -1,33 +1,39 @@
 import { Sidebar } from '@/components/Sidebar';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { useAuthSession } from '@/hooks/useAuthSession';
+import { Button } from '@/components/ui/button';
 
-const hourlySales = [
-  { hour: '08', value: 42, height: 35 },
-  { hour: '10', value: 68, height: 50 },
-  { hour: '12', value: 96, height: 66 },
-  { hour: '14', value: 74, height: 53 },
-  { hour: '16', value: 58, height: 44 },
-  { hour: '18', value: 88, height: 61 },
-  { hour: '20', value: 120, height: 80, highlight: true },
-  { hour: '22', value: 64, height: 47 },
-];
+const currentDate = new Intl.DateTimeFormat('es-PE', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+}).format(new Date());
 
-const topProducts = [
-  {
-    rank: '01',
-    name: 'Coca Cola 500 ml',
-    units: '48 unid.',
-    revenue: 'S/ 336.00',
-  },
-  { rank: '02', name: 'Pan francés', units: '32 unid.', revenue: 'S/ 144.00' },
-  { rank: '03', name: 'Queso fresco', units: '18 kg', revenue: 'S/ 321.30' },
-];
+// const hourlySales = [
+//   { hour: '08', value: 42, height: 35 },
+//   { hour: '10', value: 68, height: 50 },
+//   { hour: '12', value: 96, height: 66 },
+//   { hour: '14', value: 74, height: 53 },
+//   { hour: '16', value: 58, height: 44 },
+//   { hour: '18', value: 88, height: 61 },
+//   { hour: '20', value: 120, height: 80, highlight: true },
+//   { hour: '22', value: 64, height: 47 },
+// ];
 
 export default function Dashboard() {
-  const navigate = useNavigate();
-  const [activeRange, setActiveRange] = useState<string>('Hoy');
+  const { data: user } = useAuthSession();
   const ranges = ['Hoy', 'Semana', 'Mes'] as const;
+  type Range = (typeof ranges)[number];
+  const [activeRange, setActiveRange] = useState<Range>('Hoy');
+
+  const initials = user?.name
+    .split(' ')
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
 
   return (
     <div
@@ -64,13 +70,13 @@ export default function Dashboard() {
               data-pencil-name="Title"
               className="whitespace-nowrap text-left text-[23px]/[normal] font-normal tracking-[-1.1px] text-[#17221D]"
             >
-              Mi negocio
+              {user?.businessName || 'Mi negocio'}
             </div>
             <div
               data-pencil-name="Sub"
               className="whitespace-nowrap text-left text-[10.5px]/[normal] font-normal text-[#65736B]"
             >
-              Martes 12, 2026
+              {currentDate}
             </div>
           </div>
           <div
@@ -81,7 +87,7 @@ export default function Dashboard() {
               data-pencil-name="Initials"
               className="whitespace-nowrap text-left text-[10px]/[normal] font-normal text-[#104B37]"
             >
-              RP
+              {initials}
             </div>
           </div>
         </div>
@@ -98,6 +104,7 @@ export default function Dashboard() {
               <button
                 key={range}
                 type="button"
+                aria-pressed={isActive}
                 onClick={() => setActiveRange(range)}
                 className={`box-border flex h-7.5 flex-1 items-center justify-center rounded-full transition-colors duration-200 cursor-pointer ${
                   isActive
@@ -141,7 +148,7 @@ export default function Dashboard() {
               data-pencil-name="Value"
               className="whitespace-nowrap text-left text-[24px]/[normal] font-normal tracking-[-1.4px] text-[#17221D]"
             >
-              S/ 1,284.50
+              S/ 0.00
             </div>
           </div>
         </div>
@@ -158,7 +165,7 @@ export default function Dashboard() {
               data-pencil-name="Label"
               className="text-left text-[10.5px]/[normal] font-normal text-[#65736B]"
             >
-              Ventas totales de hoy
+              Ventas totales
             </div>
             <div
               data-pencil-name="Value Row"
@@ -168,7 +175,7 @@ export default function Dashboard() {
                 data-pencil-name="Value"
                 className="whitespace-nowrap text-left text-[32px]/[normal] font-normal tracking-[-0.8px] text-[#17221D]"
               >
-                68
+                0
               </div>
             </div>
           </div>
@@ -180,7 +187,7 @@ export default function Dashboard() {
               data-pencil-name="Label"
               className="pb-1 text-left text-[10.5px]/[normal] font-normal text-[#65736B]"
             >
-              Producto estrella de hoy
+              Producto estrella
             </div>
             <div
               data-pencil-name="Name Row"
@@ -188,31 +195,14 @@ export default function Dashboard() {
             >
               <div
                 data-pencil-name="Name"
-                className="text-left text-[12px]/[normal] font-normal tracking-[-0.2px] text-[#17221D]"
+                className="text-left text-[11px]/[normal] font-normal tracking-[-0.2px] text-[#65736B]"
               >
-                Coca Cola 500 ml Coca Cola 500 ml
+                No hay datos
               </div>
-              <div
-                data-pencil-name="Badge"
-                className="box-border shrink-0 flex flex-row gap-0 size-6.5 justify-center items-center bg-[#D9F36A] rounded-[999px]"
-              >
-                <div
-                  data-pencil-name="Text"
-                  className="whitespace-nowrap text-left text-xs/[normal] font-normal text-[#104B37]"
-                >
-                  48
-                </div>
-              </div>
-            </div>
-            <div
-              data-pencil-name="Note"
-              className="text-left text-[9px]/[normal] font-normal text-[#65736B]"
-            >
-              S/ 336 en ingresos
             </div>
           </div>
         </div>
-        <section className="flex shrink-0 flex-col gap-2 rounded-[20px] border border-[#E4E9DF] bg-white p-3">
+        {/* <section className="flex shrink-0 flex-col gap-2 rounded-[20px] border border-[#E4E9DF] bg-white p-3">
           <div className="flex w-full items-center justify-between gap-2">
             <h2 className="min-w-0 text-[12.5px] font-[750]">
               Ventas de hoy - Viernes 30
@@ -241,7 +231,7 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
-        </section>
+        </section> */}
 
         <div
           data-pencil-name="Top vendidos"
@@ -257,33 +247,16 @@ export default function Dashboard() {
             >
               Top 3 vendidos
             </div>
-            <div
-              data-pencil-name="Link"
-              onClick={() => navigate('/best-sellers')}
-              className="whitespace-nowrap text-left text-[9.5px]/[normal] font-normal text-[#176B4D] hover:underline cursor-pointer"
+            <Button
+              variant="link"
+              className="h-auto whitespace-nowrap p-0 text-[9.5px]/[normal] font-normal text-[#176B4D] hover:text-[#176B4D] hover:underline"
             >
-              Ver todos
-            </div>
+              <Link to="/best-sellers">Ver todos</Link>
+            </Button>
           </div>
-          {topProducts.map((product) => (
-            <div
-              key={product.rank}
-              className="box-border flex h-12.5 w-full flex-[1_1_0] items-center justify-start gap-2 border-b border-[#E4E9DF] last:border-b-0"
-            >
-              <span className="whitespace-nowrap text-left text-[8.5px]/[normal] text-[#65736B]">
-                {product.rank}
-              </span>
-              <span className="min-w-0 flex-1 text-left text-[10.5px]/[normal] font-semibold text-[#17221D]">
-                {product.name}
-              </span>
-              <span className="whitespace-nowrap text-left text-[8.5px]/[normal] text-[#65736B]">
-                {product.units}
-              </span>
-              <span className="whitespace-nowrap text-left text-[9.5px]/[normal] font-bold text-[#104B37]">
-                {product.revenue}
-              </span>
-            </div>
-          ))}
+          <div className="flex w-full flex-1 items-center justify-center text-[11px] text-[#65736B]">
+            No hay datos de ventas todavía
+          </div>
         </div>
       </section>
     </div>

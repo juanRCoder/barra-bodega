@@ -1,4 +1,3 @@
-import { useState, type FormEvent } from 'react';
 import {
   ArrowRight,
   Eye,
@@ -9,24 +8,35 @@ import {
   Store,
   User,
 } from 'lucide-react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm, useWatch } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { registerSchema, type RegisterFormValues } from '@/schemas/auth.schema';
+import { useRegister } from '@/hooks/useAuthMutations';
 
 export default function Register() {
   const navigate = useNavigate();
-  const [fullName, setFullName] = useState('');
-  const [storeName, setStoreName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    // TODO: call register API
-    console.log({ fullName, storeName, email, phone, password });
-  }
+  const {
+    register,
+    handleSubmit,
+    control,
+    setValue,
+    formState: { errors },
+  } = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      name: '',
+      businessName: '',
+      email: '',
+      phone: '',
+      password: '',
+      showPassword: false,
+    },
+  });
+  const showPassword = useWatch({ control, name: 'showPassword' });
+  const registration = useRegister();
 
   return (
     <div
@@ -75,7 +85,9 @@ export default function Register() {
         {/* Form Card */}
         <form
           data-pencil-name="Form Card"
-          onSubmit={handleSubmit}
+          onSubmit={handleSubmit((values) =>
+            registration.mutate(values, { onSuccess: () => navigate('/') })
+          )}
           className="box-border flex h-fit w-full shrink-0 flex-col items-start justify-start gap-3.25 rounded-[20px] bg-white p-4"
         >
           {/* Nombre y apellido */}
@@ -97,16 +109,19 @@ export default function Register() {
               />
               <Input
                 id="fullName"
-                name="fullName"
+                {...register('name')}
                 type="text"
                 autoComplete="name"
-                required
                 placeholder="Rosa Pérez"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+                aria-invalid={Boolean(errors.name)}
                 className="h-11 rounded-[12px] border-[#E4E9DF] bg-white pl-9 text-[12px] text-[#17221D] placeholder:text-[#65736B] focus-visible:border-[#176B4D] focus-visible:ring-[#176B4D]/20"
               />
             </div>
+            {errors.name && (
+              <p className="text-xs text-[#B5392B]" role="alert">
+                {errors.name.message}
+              </p>
+            )}
           </div>
 
           {/* Nombre de tu tienda */}
@@ -128,13 +143,10 @@ export default function Register() {
               />
               <Input
                 id="storeName"
-                name="storeName"
+                {...register('businessName')}
                 type="text"
                 autoComplete="organization"
-                required
                 placeholder="Bodega Doña Rosa"
-                value={storeName}
-                onChange={(e) => setStoreName(e.target.value)}
                 className="h-11 rounded-[12px] border-[#E4E9DF] bg-white pl-9 text-[12px] text-[#17221D] placeholder:text-[#65736B] focus-visible:border-[#176B4D] focus-visible:ring-[#176B4D]/20"
               />
             </div>
@@ -159,16 +171,19 @@ export default function Register() {
               />
               <Input
                 id="email"
-                name="email"
+                {...register('email')}
                 type="email"
                 autoComplete="email"
-                required
                 placeholder="rosa@gmail.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                aria-invalid={Boolean(errors.email)}
                 className="h-11 rounded-[12px] border-[#E4E9DF] bg-white pl-9 text-[12px] text-[#17221D] placeholder:text-[#65736B] focus-visible:border-[#176B4D] focus-visible:ring-[#176B4D]/20"
               />
             </div>
+            {errors.email && (
+              <p className="text-xs text-[#B5392B]" role="alert">
+                {errors.email.message}
+              </p>
+            )}
           </div>
 
           {/* Teléfono */}
@@ -201,17 +216,20 @@ export default function Register() {
               />
               <Input
                 id="phone"
-                name="phone"
+                {...register('phone')}
                 type="tel"
                 inputMode="numeric"
                 autoComplete="tel-national"
-                required
                 placeholder="987 654 321"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                aria-invalid={Boolean(errors.phone)}
                 className="h-11 rounded-[12px] border-[#E4E9DF] bg-white pl-19 text-[12px] text-[#17221D] placeholder:text-[#65736B] focus-visible:border-[#176B4D] focus-visible:ring-[#176B4D]/20"
               />
             </div>
+            {errors.phone && (
+              <p className="text-xs text-[#B5392B]" role="alert">
+                {errors.phone.message}
+              </p>
+            )}
           </div>
 
           {/* Contraseña */}
@@ -233,20 +251,27 @@ export default function Register() {
               />
               <Input
                 id="password"
-                name="password"
+                {...register('password')}
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="new-password"
-                required
                 placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                aria-invalid={Boolean(errors.password)}
                 className="h-11 rounded-[12px] border-[#E4E9DF] bg-white pr-10 pl-9 text-[12px] text-[#17221D] placeholder:text-[#65736B] focus-visible:border-[#176B4D] focus-visible:ring-[#176B4D]/20"
               />
+              {errors.password && (
+                <p className="mt-1 text-xs text-[#B5392B]" role="alert">
+                  {errors.password.message}
+                </p>
+              )}
               <Button
                 type="button"
                 variant="ghost"
                 size="icon-sm"
-                onClick={() => setShowPassword((v) => !v)}
+                onClick={() =>
+                  setValue('showPassword', !showPassword, {
+                    shouldDirty: true,
+                  })
+                }
                 aria-label={
                   showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
                 }
@@ -264,12 +289,21 @@ export default function Register() {
           {/* Primary Button */}
           <Button
             type="submit"
+            disabled={registration.isPending}
             data-pencil-name="Primary Button"
             className="box-border h-12 w-full shrink-0 gap-2 rounded-[999px] bg-[#176B4D] text-[12.5px]/[normal] font-bold text-white hover:bg-[#12553D] focus-visible:ring-3 focus-visible:ring-[#176B4D]/30"
           >
-            Crear mi cuenta
+            {registration.isPending ? 'Creando cuenta...' : 'Crear mi cuenta'}
             <ArrowRight className="size-3.75 text-white" />
           </Button>
+          {registration.error && (
+            <p
+              className="w-full text-center text-xs text-[#B5392B]"
+              role="alert"
+            >
+              {registration.error.message}
+            </p>
+          )}
         </form>
 
         {/* Switch */}

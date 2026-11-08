@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuthSession } from '@/hooks/useAuthSession';
+import { useLogout } from '@/hooks/useAuthMutations';
 import {
   Box,
   LayoutDashboard,
@@ -62,7 +64,15 @@ const NavItem = ({
 
 export const Sidebar = () => {
   const navigate = useNavigate();
+  const { data: user } = useAuthSession();
   const [isOpen, setIsOpen] = useState(false);
+  const logout = useLogout();
+  const initials = user?.name
+    .split(' ')
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
 
   // Rutas de navegación principal
   const mainNav = [
@@ -182,15 +192,15 @@ export const Sidebar = () => {
             <div className="pt-2 box-border w-full h-fit shrink-0 flex flex-row gap-2.5 pb-2 justify-start items-center">
               <div className="box-border w-8.5 shrink-0 h-8.5 flex flex-row gap-0 justify-center items-center bg-[#D9F36A] rounded-[17px]">
                 <div className="text-[11.5px]/[normal] text-[#104B37] font-[Inter,system-ui,sans-serif] font-normal text-left whitespace-nowrap">
-                  RP
+                  {initials}
                 </div>
               </div>
               <div className="box-border flex-[1_1_0] h-fit flex flex-col gap-0 justify-start items-start">
                 <div className="text-[12.5px]/[normal] text-[#17221D] font-[Inter,system-ui,sans-serif] font-normal text-left whitespace-nowrap">
-                  Rosa Pérez
+                  {user?.name}
                 </div>
                 <div className="text-[10.5px]/[normal] text-[#65736B] font-[Inter,system-ui,sans-serif] font-normal text-left whitespace-nowrap">
-                  Cliente Admin
+                  {user?.businessName || user?.role}
                 </div>
               </div>
             </div>
@@ -205,9 +215,15 @@ export const Sidebar = () => {
               </div>
             </div>
 
-            <div
-              onClick={() => navigate('/auth/login')}
-              className="box-border w-full h-9 shrink-0 flex flex-row gap-2.75 p-[0px_10px] justify-start items-center rounded-[13px] hover:bg-[#65736B]/10 cursor-pointer pb-1"
+            <button
+              type="button"
+              disabled={logout.isPending}
+              onClick={() =>
+                logout.mutate(undefined, {
+                  onSuccess: () => navigate('/auth/login'),
+                })
+              }
+              className="box-border w-full h-9 shrink-0 flex flex-row gap-2.75 p-[0px_10px] justify-start items-center rounded-[13px] hover:bg-[#65736B]/10 cursor-pointer pb-1 disabled:opacity-50"
             >
               <LogOut
                 className="h-4 w-4 shrink-0 text-[#B5392B]"
@@ -216,7 +232,12 @@ export const Sidebar = () => {
               <div className="text-[11.5px]/[normal] text-[#B5392B] font-[Inter,system-ui,sans-serif] font-bold text-left whitespace-nowrap">
                 Cerrar sesión
               </div>
-            </div>
+            </button>
+            {logout.error && (
+              <p className="px-2 text-xs text-[#B5392B]" role="alert">
+                {logout.error.message}
+              </p>
+            )}
 
             <div className="pt-2 text-[8px]/[normal] text-[#65736B] font-[Inter,system-ui,sans-serif] font-normal text-left whitespace-nowrap">
               BarraBodega v1.0 · 3 dispositivos

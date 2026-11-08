@@ -1,4 +1,3 @@
-import { useState, type FormEvent } from 'react';
 import {
   ArrowRight,
   Eye,
@@ -7,19 +6,28 @@ import {
   Mail,
   MessageCircle,
 } from 'lucide-react';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm, useWatch } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { loginSchema, type LoginFormValues } from '@/schemas/auth.schema';
+import { useLogin } from '@/hooks/useAuthMutations';
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    // TODO: call auth API
-    console.log({ email, password });
-  }
+  const navigate = useNavigate();
+  const {
+    register,
+    handleSubmit,
+    control,
+    setValue,
+    formState: { errors },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '', showPassword: false },
+  });
+  const showPassword = useWatch({ control, name: 'showPassword' });
+  const login = useLogin();
 
   return (
     <div
@@ -67,7 +75,9 @@ export default function Login() {
         {/* Form Card */}
         <form
           data-pencil-name="Form Card"
-          onSubmit={handleSubmit}
+          onSubmit={handleSubmit((values) =>
+            login.mutate(values, { onSuccess: () => navigate('/') })
+          )}
           className="box-border flex h-fit w-full shrink-0 flex-col items-start justify-start gap-3.25 rounded-[20px] bg-white p-4"
         >
           {/* Email */}
@@ -89,16 +99,19 @@ export default function Login() {
               />
               <Input
                 id="email"
-                name="email"
+                {...register('email')}
                 type="email"
                 autoComplete="email"
-                required
                 placeholder="rosa@gmail.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                aria-invalid={Boolean(errors.email)}
                 className="h-11 rounded-[12px] border-[#E4E9DF] bg-white pl-9 text-[12px] text-[#17221D] placeholder:text-[#65736B] focus-visible:border-[#176B4D] focus-visible:ring-[#176B4D]/20"
               />
             </div>
+            {errors.email && (
+              <p className="text-xs text-[#B5392B]" role="alert">
+                {errors.email.message}
+              </p>
+            )}
           </div>
 
           {/* Password */}
@@ -120,20 +133,27 @@ export default function Login() {
               />
               <Input
                 id="password"
-                name="password"
+                {...register('password')}
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="current-password"
-                required
                 placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                aria-invalid={Boolean(errors.password)}
                 className="h-11 rounded-[12px] border-[#E4E9DF] bg-white pr-9 pl-9 text-[12px] text-[#17221D] placeholder:text-[#65736B] focus-visible:border-[#176B4D] focus-visible:ring-[#176B4D]/20"
               />
+              {errors.password && (
+                <p className="mt-1 text-xs text-[#B5392B]" role="alert">
+                  {errors.password.message}
+                </p>
+              )}
               <Button
                 type="button"
                 variant="ghost"
                 size="icon-sm"
-                onClick={() => setShowPassword((v) => !v)}
+                onClick={() =>
+                  setValue('showPassword', !showPassword, {
+                    shouldDirty: true,
+                  })
+                }
                 aria-label={
                   showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
                 }
@@ -165,12 +185,21 @@ export default function Login() {
           {/* Primary Button */}
           <Button
             type="submit"
+            disabled={login.isPending}
             data-pencil-name="Primary Button"
             className="cursor-pointer box-border h-12 w-full shrink-0 gap-2 rounded-[999px] bg-[#176B4D] text-[12.5px]/[normal] font-bold text-white hover:bg-[#12553D] focus-visible:ring-3 focus-visible:ring-[#176B4D]/30"
           >
-            Iniciar sesión
+            {login.isPending ? 'Iniciando sesión...' : 'Iniciar sesión'}
             <ArrowRight className="size-3.75 text-white" />
           </Button>
+          {login.error && (
+            <p
+              className="w-full text-center text-xs text-[#B5392B]"
+              role="alert"
+            >
+              {login.error.message}
+            </p>
+          )}
         </form>
 
         {/* Support Row */}
