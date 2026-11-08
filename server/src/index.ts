@@ -3,10 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import apiRouter from '@/routes/route.js';
-import { AuthError, getAccessTokenSecret } from '@/services/auth.service.js';
 import { prisma } from '@/lib/prisma.js';
-
-getAccessTokenSecret();
 
 const app = express();
 app.use(
@@ -21,22 +18,6 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use('/api', apiRouter);
-app.use(
-  (
-    error: unknown,
-    _request: express.Request,
-    response: express.Response,
-    _next: express.NextFunction
-  ) => {
-    if (error instanceof AuthError) {
-      response.status(error.status).json({ message: error.message });
-      return;
-    }
-
-    console.error(error);
-    response.status(500).json({ message: 'Error interno del servidor.' });
-  }
-);
 
 const PORT = process.env.PORT ?? 3000;
 const server = app.listen(PORT, () =>
