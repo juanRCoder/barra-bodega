@@ -1,14 +1,40 @@
-import { ArrowRight, Eye, Lock, Mail, Phone, Store, User } from 'lucide-react';
+import { useState, type FormEvent } from 'react';
+import {
+  ArrowRight,
+  Eye,
+  EyeOff,
+  Lock,
+  Mail,
+  Phone,
+  Store,
+  User,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 export default function Register() {
   const navigate = useNavigate();
+  const [fullName, setFullName] = useState('');
+  const [storeName, setStoreName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    // TODO: call register API
+    console.log({ fullName, storeName, email, phone, password });
+  }
+
   return (
     <div
       className="flex min-h-screen w-full justify-center bg-[#F7F8F2] text-[#17221D]"
       style={{ fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif' }}
     >
       <section className="flex w-full max-w-97.5 flex-col gap-3 p-3 text-left">
+        {/* Top Bar */}
         <div
           data-pencil-name="Top Bar"
           className="box-border flex h-8 w-full shrink-0 items-center justify-between"
@@ -26,190 +52,246 @@ export default function Register() {
           </div>
         </div>
 
+        {/* Hero */}
         <div
           data-pencil-name="Hero"
-          className="box-border w-full h-fit shrink-0 flex flex-col gap-1.75 px-0 py-3 justify-start items-start"
+          className="box-border flex h-fit w-full shrink-0 flex-col items-start justify-start gap-1.75 px-0 py-3"
         >
-          <div
+          <h1
             data-pencil-name="Title"
-            className="text-[27px]/[28px] box-border text-[#17221D] font-[Inter,system-ui,sans-serif] font-normal text-left"
+            className="box-border text-left text-[27px]/[28px] font-normal text-[#17221D]"
           >
             Crea tu cuenta
-          </div>
-          <div
+          </h1>
+          <p
             data-pencil-name="Sub"
-            className="text-[11.5px]/[17px] box-border text-[#65736B] font-[Inter,system-ui,sans-serif] font-normal text-left"
+            className="box-border text-left text-[11.5px]/[17px] font-normal text-[#65736B]"
           >
             Gratis, sin tarjeta. En dos minutos ya puedes registrar tu primera
             venta.
-          </div>
+          </p>
         </div>
 
-        <div
+        {/* Form Card */}
+        <form
           data-pencil-name="Form Card"
-          className="box-border w-full h-fit shrink-0 flex flex-col gap-3.25 p-4 justify-start items-start bg-[#FFFFFF] rounded-[20px]"
+          onSubmit={handleSubmit}
+          className="box-border flex h-fit w-full shrink-0 flex-col items-start justify-start gap-3.25 rounded-[20px] bg-white p-4"
         >
+          {/* Nombre y apellido */}
           <div
             data-pencil-name="Field Nombre y apellido"
-            className="box-border w-full h-fit shrink-0 flex flex-col gap-1.5 justify-start items-start"
+            className="box-border flex h-fit w-full shrink-0 flex-col items-start justify-start gap-1.5"
           >
-            <div
+            <label
+              htmlFor="fullName"
               data-pencil-name="Label"
-              className="text-[10.5px]/[normal] box-border text-[#65736B] font-[Inter,system-ui,sans-serif] font-semibold text-left whitespace-nowrap"
+              className="whitespace-nowrap text-left text-[10.5px]/[normal] font-semibold text-[#65736B]"
             >
               Nombre y apellido
-            </div>
-            <div
-              data-pencil-name="Input"
-              className="box-border w-full h-11 shrink-0 flex flex-row gap-2 p-[0px_12px] justify-start items-center bg-[#FFFFFF] [border:1px_solid_#E4E9DF] rounded-[12px]"
-            >
-              <User className="box-border w-3.75 shrink-0 h-3.75 overflow-visible text-[#65736b]" />
-              <div
-                data-pencil-name="Value"
-                className="text-[12px]/[normal] box-border text-[#65736B] font-[Inter,system-ui,sans-serif] font-normal text-left whitespace-nowrap"
-              >
-                Rosa Pérez
-              </div>
+            </label>
+            <div className="relative w-full">
+              <User
+                aria-hidden="true"
+                className="pointer-events-none absolute top-1/2 left-3 size-3.75 -translate-y-1/2 text-[#65736b]"
+              />
+              <Input
+                id="fullName"
+                name="fullName"
+                type="text"
+                autoComplete="name"
+                required
+                placeholder="Rosa Pérez"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="h-11 rounded-[12px] border-[#E4E9DF] bg-white pl-9 text-[12px] text-[#17221D] placeholder:text-[#65736B] focus-visible:border-[#176B4D] focus-visible:ring-[#176B4D]/20"
+              />
             </div>
           </div>
+
+          {/* Nombre de tu tienda */}
           <div
             data-pencil-name="Field Nombre de tu tienda"
-            className="box-border w-full h-fit shrink-0 flex flex-col gap-1.5 justify-start items-start"
+            className="box-border flex h-fit w-full shrink-0 flex-col items-start justify-start gap-1.5"
           >
-            <div
+            <label
+              htmlFor="storeName"
               data-pencil-name="Label"
-              className="text-[10.5px]/[normal] box-border text-[#65736B] font-[Inter,system-ui,sans-serif] font-semibold text-left whitespace-nowrap"
+              className="whitespace-nowrap text-left text-[10.5px]/[normal] font-semibold text-[#65736B]"
             >
               Nombre de tu tienda
-            </div>
-            <div
-              data-pencil-name="Input"
-              className="box-border w-full h-11 shrink-0 flex flex-row gap-2 p-[0px_12px] justify-start items-center bg-[#FFFFFF] [border:1px_solid_#E4E9DF] rounded-[12px]"
-            >
-              <Store className="box-border w-3.75 shrink-0 h-3.75 overflow-visible text-[#65736b]" />
-              <div
-                data-pencil-name="Value"
-                className="text-[12px]/[normal] box-border text-[#65736B] font-[Inter,system-ui,sans-serif] font-normal text-left whitespace-nowrap"
-              >
-                Bodega Doña Rosa
-              </div>
+            </label>
+            <div className="relative w-full">
+              <Store
+                aria-hidden="true"
+                className="pointer-events-none absolute top-1/2 left-3 size-3.75 -translate-y-1/2 text-[#65736b]"
+              />
+              <Input
+                id="storeName"
+                name="storeName"
+                type="text"
+                autoComplete="organization"
+                required
+                placeholder="Bodega Doña Rosa"
+                value={storeName}
+                onChange={(e) => setStoreName(e.target.value)}
+                className="h-11 rounded-[12px] border-[#E4E9DF] bg-white pl-9 text-[12px] text-[#17221D] placeholder:text-[#65736B] focus-visible:border-[#176B4D] focus-visible:ring-[#176B4D]/20"
+              />
             </div>
           </div>
+
+          {/* Correo */}
           <div
             data-pencil-name="Field Correo"
-            className="box-border w-full h-fit shrink-0 flex flex-col gap-1.5 justify-start items-start"
+            className="box-border flex h-fit w-full shrink-0 flex-col items-start justify-start gap-1.5"
           >
-            <div
+            <label
+              htmlFor="email"
               data-pencil-name="Label"
-              className="text-[10.5px]/[normal] box-border text-[#65736B] font-[Inter,system-ui,sans-serif] font-semibold text-left whitespace-nowrap"
+              className="whitespace-nowrap text-left text-[10.5px]/[normal] font-semibold text-[#65736B]"
             >
               Correo
-            </div>
-            <div
-              data-pencil-name="Input"
-              className="box-border w-full h-11 shrink-0 flex flex-row gap-2 p-[0px_12px] justify-start items-center bg-[#FFFFFF] [border:1px_solid_#E4E9DF] rounded-[12px]"
-            >
-              <Mail className="box-border w-3.75 shrink-0 h-3.75 overflow-visible text-[#65736b]" />
-              <div
-                data-pencil-name="Value"
-                className="text-[12px]/[normal] box-border text-[#65736B] font-[Inter,system-ui,sans-serif] font-normal text-left whitespace-nowrap"
-              >
-                rosa@gmail.com
-              </div>
+            </label>
+            <div className="relative w-full">
+              <Mail
+                aria-hidden="true"
+                className="pointer-events-none absolute top-1/2 left-3 size-3.75 -translate-y-1/2 text-[#65736b]"
+              />
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                placeholder="rosa@gmail.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="h-11 rounded-[12px] border-[#E4E9DF] bg-white pl-9 text-[12px] text-[#17221D] placeholder:text-[#65736B] focus-visible:border-[#176B4D] focus-visible:ring-[#176B4D]/20"
+              />
             </div>
           </div>
+
+          {/* Teléfono */}
           <div
             data-pencil-name="Field Teléfono"
-            className="box-border w-full h-fit shrink-0 flex flex-col gap-1.5 justify-start items-start"
+            className="box-border flex h-fit w-full shrink-0 flex-col items-start justify-start gap-1.5"
           >
-            <div
+            <label
+              htmlFor="phone"
               data-pencil-name="Label"
-              className="text-[10.5px]/[normal] box-border text-[#65736B] font-[Inter,system-ui,sans-serif] font-semibold text-left whitespace-nowrap"
+              className="whitespace-nowrap text-left text-[10.5px]/[normal] font-semibold text-[#65736B]"
             >
               Teléfono
-            </div>
-            <div
-              data-pencil-name="Input"
-              className="box-border w-full h-11 shrink-0 flex flex-row gap-2 p-[0px_12px] justify-start items-center bg-[#FFFFFF] [border:1px_solid_#E4E9DF] rounded-[12px]"
-            >
-              <Phone className="box-border w-3.75 shrink-0 h-3.75 overflow-visible text-[#65736b]" />
-              <div
-                data-pencil-name="Prefix"
-                className="text-[12px]/[normal] box-border text-[#65736B] font-[Inter,system-ui,sans-serif] font-semibold text-left whitespace-nowrap"
+            </label>
+            <div className="relative w-full">
+              <Phone
+                aria-hidden="true"
+                className="pointer-events-none absolute top-1/2 left-3 size-3.75 -translate-y-1/2 text-[#65736b]"
+              />
+              {/* Prefix +51 fijo, solapado al inicio del input */}
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute top-1/2 left-9 -translate-y-1/2 text-[12px] font-semibold text-[#65736B]"
               >
                 +51
-              </div>
-              <div
-                data-pencil-name="Divider"
-                className="box-border w-px shrink-0 h-4 flex flex-row gap-0 justify-start items-start bg-[#E4E9DF]"
-              ></div>
-              <div
-                data-pencil-name="Value"
-                className="text-[12px]/[normal] box-border text-[#65736B] font-[Inter,system-ui,sans-serif] font-normal text-left"
-              >
-                987 654 321
-              </div>
+              </span>
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute top-1/2 left-16 h-4 w-px -translate-y-1/2 bg-[#E4E9DF]"
+              />
+              <Input
+                id="phone"
+                name="phone"
+                type="tel"
+                inputMode="numeric"
+                autoComplete="tel-national"
+                required
+                placeholder="987 654 321"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="h-11 rounded-[12px] border-[#E4E9DF] bg-white pl-19 text-[12px] text-[#17221D] placeholder:text-[#65736B] focus-visible:border-[#176B4D] focus-visible:ring-[#176B4D]/20"
+              />
             </div>
           </div>
+
+          {/* Contraseña */}
           <div
             data-pencil-name="Field Contraseña"
-            className="box-border w-full h-fit shrink-0 flex flex-col gap-1.5 justify-start items-start"
+            className="box-border flex h-fit w-full shrink-0 flex-col items-start justify-start gap-1.5"
           >
-            <div
+            <label
+              htmlFor="password"
               data-pencil-name="Label"
-              className="text-[10.5px]/[normal] box-border text-[#65736B] font-[Inter,system-ui,sans-serif] font-semibold text-left"
+              className="text-left text-[10.5px]/[normal] font-semibold text-[#65736B]"
             >
               Contraseña
-            </div>
-            <div
-              data-pencil-name="Input"
-              className="box-border w-full h-11 shrink-0 flex flex-row gap-2 p-[0px_12px] justify-start items-center bg-[#FFFFFF] [border:1px_solid_#E4E9DF] rounded-[12px]"
-            >
-              <Lock className="box-border w-3.75 shrink-0 h-3.75 overflow-visible text-[#65736b]" />
-              <div
-                data-pencil-name="Value"
-                className="text-[12px]/[normal] box-border text-[#17221D] font-[Inter,system-ui,sans-serif] font-normal text-left"
-              >
-                ••••••••
-              </div>
-              <div
-                data-pencil-name="Spacer"
-                className="box-border flex-[1_1_0] h-px flex flex-row gap-0 justify-start items-start"
+            </label>
+            <div className="relative w-full">
+              <Lock
+                aria-hidden="true"
+                className="pointer-events-none absolute top-1/2 left-3 size-3.75 -translate-y-1/2 text-[#65736b]"
               />
-              <Eye className="box-border w-3.75 shrink-0 h-3.75 overflow-visible text-[#65736b]" />
+              <Input
+                id="password"
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="new-password"
+                required
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="h-11 rounded-[12px] border-[#E4E9DF] bg-white pr-10 pl-9 text-[12px] text-[#17221D] placeholder:text-[#65736B] focus-visible:border-[#176B4D] focus-visible:ring-[#176B4D]/20"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={
+                  showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
+                }
+                className="absolute right-1 top-2.5 cursor-pointer text-[#65736b] hover:bg-transparent hover:text-[#176B4D]"
+              >
+                {showPassword ? (
+                  <Eye className="size-3.75" />
+                ) : (
+                  <EyeOff className="size-3.75" />
+                )}
+              </Button>
             </div>
           </div>
-          <div
-            data-pencil-name="Primary Button"
-            className="box-border w-full h-12 shrink-0 flex flex-row gap-2 justify-center items-center bg-[#176B4D] rounded-[999px]"
-          >
-            <div
-              data-pencil-name="Label"
-              className="text-[12.5px]/[normal] box-border text-[#FFFFFF] font-[Inter,system-ui,sans-serif] font-bold text-left"
-            >
-              Crear mi cuenta
-            </div>
-            <ArrowRight className="box-border w-3.75 shrink-0 h-3.75 overflow-visible text-white" />
-          </div>
-        </div>
 
+          {/* Primary Button */}
+          <Button
+            type="submit"
+            data-pencil-name="Primary Button"
+            className="box-border h-12 w-full shrink-0 gap-2 rounded-[999px] bg-[#176B4D] text-[12.5px]/[normal] font-bold text-white hover:bg-[#12553D] focus-visible:ring-3 focus-visible:ring-[#176B4D]/30"
+          >
+            Crear mi cuenta
+            <ArrowRight className="size-3.75 text-white" />
+          </Button>
+        </form>
+
+        {/* Switch */}
         <div
           data-pencil-name="Switch"
-          className="box-border w-full h-fit shrink-0 flex flex-row gap-1.25 justify-center items-center"
+          className="box-border flex h-fit w-full shrink-0 flex-row items-center justify-center gap-1.25"
         >
-          <div
+          <span
             data-pencil-name="Q"
-            className="text-[11px]/[normal] box-border text-[#65736B] font-[Inter,system-ui,sans-serif] font-normal text-left"
+            className="text-left text-[11px]/[normal] font-normal text-[#65736B]"
           >
             ¿Ya tienes cuenta?
-          </div>
-          <div
+          </span>
+          <Button
+            type="button"
+            variant="link"
             onClick={() => navigate('/auth/login')}
             data-pencil-name="A"
-            className="hover:underline cursor-pointer text-[11px]/[normal] box-border text-[#176B4D] font-[Inter,system-ui,sans-serif] font-normal text-left"
+            className="h-auto cursor-pointer p-0 text-left text-[11px]/[normal] font-normal text-[#176B4D] no-underline hover:text-[#12553D] hover:underline"
           >
             Inicia sesión
-          </div>
+          </Button>
         </div>
       </section>
     </div>
