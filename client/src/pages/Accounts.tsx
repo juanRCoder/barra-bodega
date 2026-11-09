@@ -4,6 +4,7 @@ import { ClientCard } from '@/components/ClientCard';
 import { NewAccount } from '@/components/NewAccount';
 import { useAccounts } from '@/hooks/useAccounts';
 import { AccountsApiError } from '@/services/accounts.service';
+import { Button } from '@/components/ui/button';
 
 const filterOptions = ['Todos', 'Con deuda', 'Saldados'] as const;
 
@@ -11,7 +12,7 @@ const formatCurrency = (amount: number) => `S/ ${amount.toFixed(2)}`;
 
 export default function Accounts() {
   const [activeFilter, setActiveFilter] =
-    useState<(typeof filterOptions)[number]>('Con deuda');
+    useState<(typeof filterOptions)[number]>('Todos');
   const accountsQuery = useAccounts();
   const accounts = accountsQuery.data?.accounts ?? [];
   const summary = accountsQuery.data?.summary;
@@ -108,25 +109,22 @@ export default function Accounts() {
             {filterOptions.map((filter) => {
               const isActive = activeFilter === filter;
               return (
-                <button
+                <Button
                   key={filter}
+                  type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={() => setActiveFilter(filter)}
-                  className={`box-border w-fit shrink-0 h-7.5 flex flex-row gap-0 px-3 py-0 justify-start items-center rounded-full border transition-colors cursor-pointer ${
+                  className={`cursor-pointer h-7.5 w-fit shrink-0 rounded-full border px-3 transition-colors text-[10.5px]/[normal] ${
                     isActive
-                      ? 'bg-[#176B4D] border-[#176B4D]'
-                      : 'bg-[#FFFFFF] border-[#E4E9DF] hover:bg-[#F7F8F2]'
+                      ? 'border-[#176B4D] bg-[#176B4D] text-white hover:bg-[#104B37] hover:text-white'
+                      : 'border-[#E4E9DF] bg-white text-[#65736B] hover:bg-[#F7F8F2] hover:text-[#65736B]'
                   }`}
                 >
-                  <div
-                    className={`text-[10.5px]/[normal] box-border font-[Inter,system-ui,sans-serif] text-left whitespace-nowrap ${
-                      isActive
-                        ? 'text-[#FFFFFF] font-bold'
-                        : 'text-[#65736B] font-normal'
-                    }`}
-                  >
+                  <span className={isActive ? 'font-bold' : 'font-normal'}>
                     {filter}
-                  </div>
-                </button>
+                  </span>
+                </Button>
               );
             })}
           </div>

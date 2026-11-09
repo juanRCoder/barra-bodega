@@ -16,7 +16,9 @@ import {
   Users,
 } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAccounts } from '@/hooks/useAccounts';
+import { AccountsApiError } from '@/services/accounts.service';
 
 const hiddenScrollbar =
   '[scrollbar-width:none] [-ms-overflow-style:none] ' +
@@ -27,30 +29,26 @@ const INITIAL_PRODUCTS: Product[] = [
   { id: '2', name: 'Atún Corbeta 300ml', price: 38.9, qty: 1, total: 38.9 },
 ];
 
-// Clientes de ejemplo
-const CUSTOMERS = [
-  { id: 'c1', name: 'María Quispe' },
-  { id: 'c2', name: 'Juan Pérez1' },
-  { id: 'c3', name: 'Rosa Huamán2' },
-  { id: 'c4', name: 'Carlos Ríos3' },
-  { id: 'c5', name: 'Carlos Huamán4' },
-  { id: 'c6', name: 'Carlos Pérez5' },
-  { id: 'c7', name: 'Carlos Quispe6' },
-  { id: 'c8', name: 'Carlos Ríos7' },
-  { id: 'c9', name: 'Carlos Pérez8' },
-  { id: 'c10', name: 'Juan Huamán9' },
-];
-
 type PaymentMethod = 'cash' | 'yape';
 
 export default function ScanNewOrder() {
   const navigate = useNavigate();
+  const location = useLocation();
   const videoRef = useRef<HTMLVideoElement>(null);
+  const accountsQuery = useAccounts();
+  const accounts = accountsQuery.data?.accounts ?? [];
+  const initialAccountId =
+    location.state &&
+    typeof location.state === 'object' &&
+    'accountId' in location.state &&
+    typeof location.state.accountId === 'string'
+      ? location.state.accountId
+      : null;
 
   const [cameraError] = useState(false);
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
-  const [customerId, setCustomerId] = useState<string | null>(null);
+  const [customerId, setCustomerId] = useState<string | null>(initialAccountId);
   const [manualName, setManualName] = useState('');
   const [manualPrice, setManualPrice] = useState('');
   const [saleDone, setSaleDone] = useState(false);
@@ -63,8 +61,8 @@ export default function ScanNewOrder() {
     () => products.reduce((sum, p) => sum + p.qty, 0),
     [products]
   );
-  const customerName =
-    CUSTOMERS.find((c) => c.id === customerId)?.name ?? 'Sin cuenta';
+  const selectedAccount = accounts.find((account) => account.id === customerId);
+  const customerName = selectedAccount?.name ?? 'Sin cuenta';
 
   /* ---------- Acciones ---------- */
 
@@ -117,7 +115,7 @@ export default function ScanNewOrder() {
       products,
       total,
       paymentMethod,
-      customerId,
+      accountId: selectedAccount?.id ?? null,
     });
     setSaleDone(true);
     setTimeout(() => setSaleDone(false), 2000);
@@ -333,17 +331,16 @@ export default function ScanNewOrder() {
             </div>
           </div>
 
-          {/* Selector de cliente */}
-          {/* Selector de cliente (shadcn/ui) */}
-          <div className="w-full">
-            <Select
-              value={customerId ?? 'none'}
-              onValueChange={(val) =>
-                setCustomerId(val === 'none' ? null : val)
-              }
-            >
-              <SelectTrigger
-                className="
+          {accounts.length > 0 && (
+            <div className="w-full">
+              <Select
+                value={selectedAccount?.id ?? 'none'}
+                onValueChange={(val) =>
+                  setCustomerId(val === 'none' ? null : val)
+                }
+              >
+                <SelectTrigger
+                  className="
     w-full h-10.5 flex gap-2 px-2.75
     bg-[#FAFBF6] outline outline-[#E4E9DF] rounded-xl
     border-0 shadow-none focus:ring-0 focus:outline-[#176B4D]
@@ -352,47 +349,64 @@ export default function ScanNewOrder() {
     [&>svg]:transition [&>svg]:duration-200
     data-[state=open]:[&>svg]:rotate-180
   "
-              >
-                <Users className="w-3.5 h-3.5 text-[#176b4d]" />
-                <span className="text-[9.5px] text-[#17221D]">
-                  Cuenta de cliente
-                </span>
-                <span className="px-1.5 py-0.5 bg-[#EAF2DF] rounded-full text-[6.5px] text-[#104B37] font-bold">
-                  Opcional
-                </span>
-                <span className="flex-1" />
-                <span className="text-[9px] text-[#65736B] max-w-24 truncate">
-                  {customerName}
-                </span>
-              </SelectTrigger>
+                >
+                  <Users className="w-3.5 h-3.5 text-[#176b4d]" />
+                  <span className="text-[9.5px] text-[#17221D]">
+                    Cuenta de cliente
+                  </span>
+                  <span className="px-1.5 py-0.5 bg-[#EAF2DF] rounded-full text-[6.5px] text-[#104B37] font-bold">
+                    Opcional
+                  </span>
+                  <span className="flex-1" />
+                  <span className="text-[9px] text-[#65736B] max-w-24 truncate">
+                    {customerName}
+                  </span>
+                </SelectTrigger>
 
-              <SelectContent
-                className="
+                <SelectContent
+                  className="
         bg-white rounded-xl shadow-lg outline outline-[#E4E9DF]
         border-0 min-w-(--radix-select-trigger-width)
       "
-              >
-                <SelectGroup>
-                  <SelectItem
-                    value="none"
-                    className="text-[10px] px-3.5 focus:bg-[#EAF2DF] cursor-pointer"
-                  >
-                    <span className="text-[#65736B]">Sin cuenta</span>
-                  </SelectItem>
-
-                  {CUSTOMERS.map((c) => (
+                >
+                  <SelectGroup>
                     <SelectItem
-                      key={c.id}
-                      value={c.id}
-                      className="text-[10px] px-3 focus:bg-[#EAF2DF] cursor-pointer"
+                      value="none"
+                      className="text-[10px] px-3.5 focus:bg-[#EAF2DF] cursor-pointer"
                     >
-                      {c.name}
+                      <span className="text-[#65736B]">Sin cuenta</span>
                     </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
+
+                    {accounts.map((account) => (
+                      <SelectItem
+                        key={account.id}
+                        value={account.id}
+                        className="text-[10px] px-3 focus:bg-[#EAF2DF] cursor-pointer"
+                      >
+                        {account.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {accountsQuery.isError && (
+            <div className="flex w-full items-center justify-between gap-2 text-[9px] text-[#B5392B]">
+              <span role="alert">
+                {accountsQuery.error instanceof AccountsApiError
+                  ? accountsQuery.error.message
+                  : 'No se pudieron cargar las cuentas.'}
+              </span>
+              <button
+                type="button"
+                onClick={() => void accountsQuery.refetch()}
+                className="shrink-0 cursor-pointer font-semibold underline"
+              >
+                Reintentar
+              </button>
+            </div>
+          )}
 
           <div className="w-full h-px bg-[#E4E9DF]" />
 

@@ -34,7 +34,7 @@ export const requireAdmin: RequestHandler = (req, res, next) => {
   }
 
   if (claims.role !== 'ADMIN') {
-    next(new AppError(403, 'No tienes permiso para acceder a las cuentas'));
+    next(new AppError(403, 'No tienes permiso para acceder a este recurso'));
     return;
   }
 

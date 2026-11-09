@@ -1,28 +1,44 @@
 import { ArrowLeft, Barcode, CircleCheck, Plus } from 'lucide-react';
 import { useRef, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useCreateProduct } from '@/hooks/useProducts';
+import { ProductsApiError } from '@/services/products.service';
 
 export default function NewProduct() {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const [name, setName] = useState('');
-  const [barcode, setBarcode] = useState('7501055300012');
+  const [barcode, setBarcode] = useState('');
   const [price, setPrice] = useState('');
   const [stock, setStock] = useState('0');
   const [cameraError] = useState(false);
+  const createProductMutation = useCreateProduct();
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const payload = {
-      name: name.trim(),
-      barcode,
-      price: parseFloat(price) || 0,
-      stock: parseInt(stock, 10) || 0,
-    };
-    console.log(payload);
-    // TODO: llamar API
-    navigate('/inventory');
+    const parsedPrice = Number(price);
+    const parsedStock = Number(stock);
+    if (
+      !name.trim() ||
+      !barcode.trim() ||
+      !Number.isFinite(parsedPrice) ||
+      parsedPrice < 0 ||
+      !Number.isInteger(parsedStock) ||
+      parsedStock < 0
+    ) {
+      return;
+    }
+
+    createProductMutation.mutate(
+      {
+        name: name.trim(),
+        code: barcode.trim(),
+        price: parsedPrice,
+        stock: parsedStock,
+      },
+      { onSuccess: () => navigate('/inventory') }
+    );
   };
 
   return (
@@ -117,6 +133,7 @@ export default function NewProduct() {
                 name="name"
                 type="text"
                 required
+                maxLength={120}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Ej. Queso fresco"
@@ -140,14 +157,16 @@ export default function NewProduct() {
                 id="new-product-barcode"
                 name="barcode"
                 type="text"
-                inputMode="numeric"
+                required
+                maxLength={100}
                 value={barcode}
-                onChange={(e) => setBarcode(e.target.value.replace(/\D/g, ''))}
+                onChange={(e) => setBarcode(e.target.value)}
+                placeholder="Ej. 7501055300012"
                 className="m-0 h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-left text-[11.5px]/[normal] font-[Inter,system-ui,sans-serif] font-semibold tracking-[0.4px] text-[#17221D] outline-none"
               />
               <div className="flex h-fit w-fit shrink-0 flex-row items-center justify-start gap-0 rounded-full bg-[#EAF2DF] p-[3px_8px]">
                 <div className="box-border text-left text-[7.5px]/[normal] font-[Inter,system-ui,sans-serif] font-bold whitespace-nowrap text-[#104B37]">
-                  Escaneado
+                  Global
                 </div>
               </div>
             </div>
@@ -172,6 +191,7 @@ export default function NewProduct() {
                   type="text"
                   inputMode="decimal"
                   required
+                  min="0"
                   value={price}
                   onChange={(e) => {
                     const clean = e.target.value
@@ -206,6 +226,7 @@ export default function NewProduct() {
                   type="text"
                   inputMode="numeric"
                   required
+                  min="0"
                   value={stock}
                   onChange={(e) => setStock(e.target.value.replace(/\D/g, ''))}
                   placeholder="0"
@@ -229,13 +250,23 @@ export default function NewProduct() {
           {/* Add */}
           <button
             type="submit"
-            className="flex h-12 w-full shrink-0 cursor-pointer flex-row items-center justify-center gap-2 rounded-full bg-[#176B4D] transition-colors hover:bg-[#104B37] [box-shadow:0px_10px_24px_#176B4D33]"
+            disabled={createProductMutation.isPending}
+            className="flex h-12 w-full shrink-0 cursor-pointer flex-row items-center justify-center gap-2 rounded-full bg-[#176B4D] transition-colors hover:bg-[#104B37] [box-shadow:0px_10px_24px_#176B4D33] disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Plus className="size-4 shrink-0 text-white" />
             <span className="box-border text-left text-[12.5px]/[normal] font-[Inter,system-ui,sans-serif] font-bold whitespace-nowrap text-white">
-              Agregar producto
+              {createProductMutation.isPending
+                ? 'Agregando…'
+                : 'Agregar producto'}
             </span>
           </button>
+          {createProductMutation.isError && (
+            <p className="m-0 text-[10px] text-[#B5392B]" role="alert">
+              {createProductMutation.error instanceof ProductsApiError
+                ? createProductMutation.error.message
+                : 'No se pudo registrar el producto.'}
+            </p>
+          )}
         </form>
       </section>
     </div>

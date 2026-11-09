@@ -1,5 +1,5 @@
 import type { NewAccountForm } from '@/types/account.type';
-import { Phone, Plus, User, UserPlus, X } from 'lucide-react';
+import { Loader2, Phone, Plus, User, UserPlus, X } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { useCreateAccount } from '@/hooks/useAccounts';
 import { AccountsApiError } from '@/services/accounts.service';
@@ -92,15 +92,17 @@ export const NewAccount = () => {
             >
               Nueva cuenta
             </h2>
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon"
               onClick={close}
               aria-label="Cerrar"
               data-pencil-name="Close"
-              className="box-border size-7 shrink-0 flex flex-row gap-0 justify-center items-center bg-[#F7F8F2] rounded-[14px] cursor-pointer hover:bg-[#E4E9DF] transition-colors"
+              className="size-7 shrink-0 rounded-[14px] bg-[#F7F8F2] text-[#65736B] hover:bg-[#E4E9DF] hover:text-[#65736B] cursor-pointer"
             >
-              <X className="box-border size-3.5 shrink-0 text-[#65736B]" />
-            </button>
+              <X data-icon="inline-center" />
+            </Button>
           </div>
 
           <form
@@ -188,20 +190,21 @@ export const NewAccount = () => {
               </div>
             </div>
 
-            <button
+            <Button
               type="submit"
               data-pencil-name="Register"
               disabled={createAccountMutation.isPending}
-              className="box-border w-full h-12 shrink-0 [box-shadow:0px_10px_24px_#176B4D33] flex flex-row gap-2 justify-center items-center bg-[#176B4D] rounded-full cursor-pointer hover:bg-[#104B37] transition-colors"
+              className="h-12 w-full shrink-0 gap-2 rounded-full bg-[#176B4D] shadow-[0px_10px_24px_#176B4D33] transition-colors hover:bg-[#104B37] disabled:opacity-70 text-xs/[normal] [Inter,system-ui,sans-serif] font-semibold cursor-pointer"
             >
-              <UserPlus className="size-4 text-white" />
-              <span
-                data-pencil-name="Label"
-                className="text-[12.5px]/[normal] box-border text-white font-[Inter,system-ui,sans-serif] font-bold text-left whitespace-nowrap"
-              >
+              {createAccountMutation.isPending ? (
+                <Loader2 data-icon="inline-start" className="animate-spin" />
+              ) : (
+                <UserPlus data-icon="inline-start" />
+              )}
+              <span data-pencil-name="Label">
                 {createAccountMutation.isPending ? 'Registrando…' : 'Registrar'}
               </span>
-            </button>
+            </Button>
             {createAccountMutation.isError && (
               <p className="m-0 text-[11px] text-[#B5392B]" role="alert">
                 {createAccountMutation.error instanceof AccountsApiError

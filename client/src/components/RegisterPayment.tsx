@@ -31,6 +31,7 @@ export const RegisterPayment = ({
 
   const numericAmount = parseFloat(amount) || 0;
   const confirmLabel = `Confirmar pago · ${formatCurrency(numericAmount)}`;
+  const hasBalance = balance > 0;
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -49,11 +50,13 @@ export const RegisterPayment = ({
       <button
         type="button"
         onClick={() => {
+          if (!hasBalance) return;
           setAmount(balance.toFixed(2));
           setIsOpen(true);
         }}
+        disabled={!hasBalance}
         data-pencil-name="Register Payment"
-        className="box-border flex-1 h-10 flex flex-row gap-1.5 justify-center items-center bg-[#176B4D] rounded-full cursor-pointer hover:bg-[#104B37] transition-colors"
+        className="box-border flex-1 h-10 flex flex-row gap-1.5 justify-center items-center bg-[#176B4D] rounded-full cursor-pointer hover:bg-[#104B37] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
       >
         <Check className="box-border size-3.5 shrink-0 text-white" />
         <div

@@ -1,40 +1,49 @@
 import { Check, Pencil, X } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
+import { useUpdateProduct } from '@/hooks/useProducts';
+import { ProductsApiError } from '@/services/products.service';
 
 type props = {
+  productId: string;
   productName: string;
-  initialPrice?: number;
-  initialStock?: number;
+  initialPrice: number;
+  initialStock: number;
 };
 
 export const UpdateProduct = ({
+  productId,
   productName,
-  initialPrice = 7.0,
-  initialStock = 24,
+  initialPrice,
+  initialStock,
 }: props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [price, setPrice] = useState(initialPrice.toFixed(2));
   const [stock, setStock] = useState(String(initialStock));
+  const updateMutation = useUpdateProduct();
 
   const close = () => setIsOpen(false);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const payload = {
-      productName,
-      price: parseFloat(price) || 0,
-      stock: parseInt(stock, 10) || 0,
-    };
-    console.log(payload);
-    // TODO: llamar API
-    close();
+    updateMutation.mutate(
+      {
+        id: productId,
+        data: { price: Number(price), stock: Number(stock) },
+      },
+      { onSuccess: close }
+    );
   };
 
   return (
     <>
       <button
         type="button"
-        onClick={() => setIsOpen(true)}
+        onClick={() => {
+          setPrice(initialPrice.toFixed(2));
+          setStock(String(initialStock));
+          updateMutation.reset();
+          setIsOpen(true);
+        }}
         aria-label={`Editar ${productName}`}
         className="box-border size-6.5 shrink-0 flex flex-row gap-0 justify-center items-center bg-[#F7F8F2] border border-[#E4E9DF] rounded-[13px] hover:bg-[#E4E9DF] transition-colors cursor-pointer"
       >
@@ -136,6 +145,7 @@ export const UpdateProduct = ({
                     inputMode="decimal"
                     autoComplete="off"
                     required
+                    min="0"
                     value={price}
                     onChange={(e) => {
                       const clean = e.target.value
@@ -182,6 +192,7 @@ export const UpdateProduct = ({
                     inputMode="numeric"
                     autoComplete="off"
                     required
+                    min="0"
                     value={stock}
                     onChange={(e) =>
                       setStock(e.target.value.replace(/\D/g, ''))
@@ -202,16 +213,24 @@ export const UpdateProduct = ({
             <button
               type="submit"
               data-pencil-name="Save"
-              className="box-border w-full h-12 shrink-0 [box-shadow:0px_10px_24px_#176B4D33] flex flex-row gap-2 justify-center items-center bg-[#176B4D] rounded-full cursor-pointer hover:bg-[#104B37] transition-colors"
+              disabled={updateMutation.isPending}
+              className="box-border w-full h-12 shrink-0 [box-shadow:0px_10px_24px_#176B4D33] flex flex-row gap-2 justify-center items-center bg-[#176B4D] rounded-full cursor-pointer hover:bg-[#104B37] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Check className="box-border size-4 shrink-0 text-white" />
               <span
                 data-pencil-name="Label"
                 className="text-[12.5px]/[normal] box-border text-[#FFFFFF] font-[Inter,system-ui,sans-serif] font-bold text-left whitespace-nowrap"
               >
-                Guardar cambios
+                {updateMutation.isPending ? 'Guardando…' : 'Guardar cambios'}
               </span>
             </button>
+            {updateMutation.isError && (
+              <p className="m-0 text-[10px] text-[#B5392B]" role="alert">
+                {updateMutation.error instanceof ProductsApiError
+                  ? updateMutation.error.message
+                  : 'No se pudieron guardar los cambios.'}
+              </p>
+            )}
           </form>
         </div>
       </div>

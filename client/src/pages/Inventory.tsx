@@ -1,4 +1,7 @@
 import { Sidebar } from '@/components/Sidebar';
+import { ProductCard } from '@/components/ProductCard';
+import { ProductsApiError } from '@/services/products.service';
+import { useProducts } from '@/hooks/useProducts';
 import {
   ChevronLeft,
   ChevronRight,
@@ -6,19 +9,10 @@ import {
   Search,
   Triangle,
 } from 'lucide-react';
-import { useState } from 'react';
-import { ProductCard } from '@/components/ProductCard';
-import type { ProductData } from '@/types/inventory.type';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// --- Datos de ejemplo ---
-const products: ProductData[] = [
-  { id: '1', name: 'Coca Cola 500 ml', price: 7, unit: '/ unid.', stock: 24 },
-  { id: '2', name: 'Queso fresco', price: 38.9, unit: '/ kg', stock: 9 },
-  { id: '3', name: 'Azúcar rubia 1 kg', price: 4.5, unit: 'kg', stock: 0 },
-];
-
-const totalPages = 10;
+const PAGE_SIZE = 10;
 
 const getVisiblePages = (currentPage: number, pageCount: number) => {
   if (pageCount <= 5) {
@@ -53,7 +47,30 @@ const getVisiblePages = (currentPage: number, pageCount: number) => {
 export default function Inventory() {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
+  const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const productsQuery = useProducts({
+    page: currentPage,
+    pageSize: PAGE_SIZE,
+    search: debouncedSearch,
+  });
+  const products = productsQuery.data?.products ?? [];
+  const pagination = productsQuery.data?.pagination;
+  const summary = productsQuery.data?.summary;
+  const totalPages = pagination?.totalPages ?? 0;
   const visiblePages = getVisiblePages(currentPage, totalPages);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setDebouncedSearch(search.trim());
+    }, 250);
+    return () => window.clearTimeout(timeoutId);
+  }, [search]);
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setCurrentPage(1);
+  };
 
   return (
     <div
@@ -61,119 +78,160 @@ export default function Inventory() {
       style={{ fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif' }}
     >
       <section className="flex w-full max-w-97.5 flex-col gap-3 p-3 text-left">
-        {/* TOP BAR CORREGIDO */}
-        <div className="box-border w-full min-h-11 shrink-0 flex flex-wrap gap-3 justify-between items-center">
-          <div className="box-border flex flex-row gap-2.5 justify-start items-center min-w-0 flex-1">
+        <div className="box-border flex min-h-11 w-full shrink-0 flex-wrap items-center justify-between gap-3">
+          <div className="box-border flex min-w-0 flex-1 flex-row items-center justify-start gap-2.5">
             <Sidebar />
-            <div className="box-border w-fit h-fit flex flex-col gap-px justify-start items-start min-w-0">
-              <div className="text-[23px]/[normal] box-border text-[#17221D] font-[Inter,system-ui,sans-serif] font-normal tracking-[-1.1px] text-left truncate w-full">
+            <div className="box-border flex h-fit min-w-0 w-fit flex-col items-start justify-start gap-px">
+              <div className="box-border w-full truncate text-left text-[23px]/[normal] font-[Inter,system-ui,sans-serif] font-normal tracking-[-1.1px] text-[#17221D]">
                 Inventario
               </div>
-              <div className="text-[10.5px]/[normal] box-border text-[#65736B] font-[Inter,system-ui,sans-serif] font-normal text-left truncate w-full">
-                142 productos · 3 por reponer
+              <div className="box-border w-full truncate text-left text-[10.5px]/[normal] font-[Inter,system-ui,sans-serif] font-normal text-[#65736B]">
+                {productsQuery.isPending
+                  ? 'Cargando inventario…'
+                  : `${summary?.totalProducts ?? 0} productos · ${summary?.restockCount ?? 0} por reponer`}
               </div>
             </div>
           </div>
           <button
+            type="button"
             onClick={() => navigate('/scan/product')}
-            className="box-border w-fit shrink-0 h-8.5 flex flex-row gap-1.5 px-3.25 py-0 justify-start items-center bg-[#D9F36A] rounded-full hover:bg-[#c9e15e] transition-colors cursor-pointer"
+            className="box-border flex h-8.5 w-fit shrink-0 cursor-pointer flex-row items-center justify-start gap-1.5 rounded-full bg-[#D9F36A] px-3.25 py-0 transition-colors hover:bg-[#c9e15e]"
           >
             <Plus className="box-border size-3.5 shrink-0 text-[#104B37]" />
-            <div className="text-[11px]/[normal] box-border text-[#104B37] font-[Inter,system-ui,sans-serif] font-bold text-left whitespace-nowrap">
+            <span className="box-border whitespace-nowrap text-left text-[11px]/[normal] font-[Inter,system-ui,sans-serif] font-bold text-[#104B37]">
               Agregar
-            </div>
+            </span>
           </button>
         </div>
 
-        {/* SEARCH */}
-        <div className="box-border w-full h-10 shrink-0 flex flex-row gap-2 px-3 py-0 justify-start items-center bg-[#FFFFFF] border border-[#E4E9DF] rounded-xl">
-          <Search className="box-border size-3.5 shrink-0 text-[#65736B]" />
+        <label className="box-border flex h-10 w-full shrink-0 flex-row items-center justify-start gap-2 rounded-xl border border-[#E4E9DF] bg-white px-3 py-0">
+          <Search
+            aria-hidden="true"
+            className="box-border size-3.5 shrink-0 text-[#65736B]"
+          />
           <input
             type="search"
-            placeholder="Buscar producto por codigo o nombre"
-            className="w-full h-full bg-transparent text-[11px] outline-none text-[#17221D] placeholder-[#65736B]"
+            value={search}
+            onChange={(event) => handleSearchChange(event.target.value)}
+            placeholder="Buscar por código o nombre"
+            aria-label="Buscar producto por código o nombre"
+            className="h-full w-full bg-transparent text-[11px] text-[#17221D] outline-none placeholder:text-[#65736B]"
           />
-        </div>
+        </label>
 
-        {/* RESTOCK CORREGIDO */}
-        <div className="box-border w-full min-h-13.5 shrink-0 flex flex-row gap-2.25 px-3 py-2 justify-start items-center bg-[#FFFFFF] border border-[#E4E9DF] rounded-2xl">
-          <div className="box-border size-8 shrink-0 flex flex-row gap-0 justify-center items-center bg-[#FAF1DE] rounded-xl">
-            <Triangle className="box-border size-3.5 shrink-0 text-[#C98A1A]" />
-          </div>
-          <div className="box-border flex-1 min-w-0 h-fit flex flex-col gap-px justify-start items-start">
-            <div className="text-[10.5px]/[normal] box-border text-[#17221D] font-[Inter,system-ui,sans-serif] font-bold text-left line-clamp-2">
-              3 productos necesitan reposición
+        {(summary?.restockCount ?? 0) > 0 && (
+          <div className="box-border flex min-h-13.5 w-full shrink-0 flex-row items-center justify-start gap-2.25 rounded-2xl border border-[#E4E9DF] bg-white px-3 py-2">
+            <div className="box-border flex size-8 shrink-0 flex-row items-center justify-center gap-0 rounded-xl bg-[#FAF1DE]">
+              <Triangle className="box-border size-3.5 shrink-0 text-[#C98A1A]" />
             </div>
+            <div className="box-border flex h-fit min-w-0 flex-1 flex-col items-start justify-start gap-px">
+              <div className="line-clamp-2 text-left text-[10.5px]/[normal] font-[Inter,system-ui,sans-serif] font-bold text-[#17221D]">
+                {summary?.restockCount} productos necesitan reposición
+              </div>
+            </div>
+            <ChevronRight className="box-border size-3.5 shrink-0 text-[#65736B]" />
           </div>
-          <ChevronRight className="box-border size-3.5 shrink-0 text-[#65736B]" />
-        </div>
+        )}
 
-        {/* GRID DE PRODUCTOS DINÁMICO */}
         <div className="box-border w-full flex-1 flex flex-col gap-2 justify-start items-start">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-
-          {/* PAGER */}
-          <div className="box-border w-full h-fit shrink-0 flex flex-row gap-1.5 pt-1.5 justify-center items-center">
-            <button
-              type="button"
-              aria-label="Página anterior"
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-              className="box-border flex size-7.5 shrink-0 items-center justify-center rounded-[10px] border border-[#E4E9DF] bg-[#F7F8F2] transition-colors hover:bg-[#E4E9DF] disabled:cursor-not-allowed disabled:opacity-40"
+          {productsQuery.isPending ? (
+            <div
+              className="w-full py-8 text-center text-[11px] text-[#65736B]"
+              role="status"
             >
-              <ChevronLeft className="box-border size-3.5 shrink-0 text-[#65736B]" />
-            </button>
-            <div className="box-border w-fit shrink-0 h-fit flex flex-row gap-0.75 justify-start items-center">
-              {visiblePages.map((page) => {
-                if (typeof page !== 'number') {
-                  return (
-                    <span
-                      key={page}
-                      aria-hidden="true"
-                      className="px-1 text-[9.5px]/[normal] font-semibold text-[#65736B]"
-                    >
-                      …
-                    </span>
-                  );
-                }
-
-                const isActive = page === currentPage;
-
-                return (
-                  <button
-                    key={page}
-                    type="button"
-                    onClick={() => setCurrentPage(page)}
-                    aria-current={isActive ? 'page' : undefined}
-                    className={`box-border flex size-6.5 shrink-0 cursor-pointer items-center justify-center rounded-[9px] transition-colors ${
-                      isActive ? 'bg-[#104B37]' : 'hover:bg-[#E4E9DF]'
-                    }`}
-                  >
-                    <span
-                      className={`whitespace-nowrap text-left text-[9.5px]/[normal] font-bold ${
-                        isActive ? 'text-white' : 'text-[#65736B]'
-                      }`}
-                    >
-                      {page}
-                    </span>
-                  </button>
-                );
-              })}
+              Cargando productos…
             </div>
-            <button
-              type="button"
-              aria-label="Página siguiente"
-              disabled={currentPage === totalPages}
-              onClick={() =>
-                setCurrentPage((page) => Math.min(totalPages, page + 1))
-              }
-              className="box-border flex size-7.5 shrink-0 items-center justify-center rounded-[10px] bg-[#17221D] transition-colors hover:bg-[#104B37] disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <ChevronRight className="box-border size-3.5 shrink-0 text-[#FFFFFF]" />
-            </button>
-          </div>
+          ) : productsQuery.isError ? (
+            <div className="flex w-full flex-col items-center gap-2 py-8 text-center text-[11px] text-[#B5392B]">
+              <p role="alert">
+                {productsQuery.error instanceof ProductsApiError
+                  ? productsQuery.error.message
+                  : 'No se pudo cargar el inventario.'}
+              </p>
+              <button
+                type="button"
+                onClick={() => void productsQuery.refetch()}
+                className="cursor-pointer rounded-full bg-[#176B4D] px-4 py-2 font-semibold text-white"
+              >
+                Reintentar
+              </button>
+            </div>
+          ) : products.length > 0 ? (
+            <>
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+
+              {totalPages > 1 && (
+                <div className="box-border flex h-fit w-full shrink-0 flex-row items-center justify-center gap-1.5 pt-1.5">
+                  <button
+                    type="button"
+                    aria-label="Página anterior"
+                    disabled={currentPage === 1}
+                    onClick={() =>
+                      setCurrentPage((page) => Math.max(1, page - 1))
+                    }
+                    className="box-border flex size-7.5 shrink-0 items-center justify-center rounded-[10px] border border-[#E4E9DF] bg-[#F7F8F2] transition-colors hover:bg-[#E4E9DF] disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <ChevronLeft className="box-border size-3.5 shrink-0 text-[#65736B]" />
+                  </button>
+                  <div className="box-border flex h-fit w-fit shrink-0 flex-row items-center justify-start gap-0.75">
+                    {visiblePages.map((page) => {
+                      if (typeof page !== 'number') {
+                        return (
+                          <span
+                            key={page}
+                            aria-hidden="true"
+                            className="px-1 text-[9.5px]/[normal] font-semibold text-[#65736B]"
+                          >
+                            …
+                          </span>
+                        );
+                      }
+
+                      const isActive = page === currentPage;
+                      return (
+                        <button
+                          key={page}
+                          type="button"
+                          onClick={() => setCurrentPage(page)}
+                          aria-current={isActive ? 'page' : undefined}
+                          className={`box-border flex size-6.5 shrink-0 cursor-pointer items-center justify-center rounded-[9px] transition-colors ${
+                            isActive ? 'bg-[#104B37]' : 'hover:bg-[#E4E9DF]'
+                          }`}
+                        >
+                          <span
+                            className={`whitespace-nowrap text-left text-[9.5px]/[normal] font-bold ${
+                              isActive ? 'text-white' : 'text-[#65736B]'
+                            }`}
+                          >
+                            {page}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <button
+                    type="button"
+                    aria-label="Página siguiente"
+                    disabled={currentPage === totalPages}
+                    onClick={() =>
+                      setCurrentPage((page) => Math.min(totalPages, page + 1))
+                    }
+                    className="box-border flex size-7.5 shrink-0 items-center justify-center rounded-[10px] bg-[#17221D] transition-colors hover:bg-[#104B37] disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <ChevronRight className="box-border size-3.5 shrink-0 text-white" />
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="w-full py-8 text-center text-[11px] text-[#65736B]">
+              {debouncedSearch
+                ? 'No hay productos que coincidan con la búsqueda.'
+                : 'Aún no tienes productos. Registra el primero para comenzar.'}
+            </div>
+          )}
         </div>
       </section>
     </div>

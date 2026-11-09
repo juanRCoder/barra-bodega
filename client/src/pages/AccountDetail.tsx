@@ -272,6 +272,11 @@ export default function AccountDetail() {
               <button
                 type="button"
                 data-pencil-name="Add Product"
+                onClick={() =>
+                  navigate('/scan/new-order', {
+                    state: { accountId: account.id },
+                  })
+                }
                 className="box-border flex-1 h-10 flex flex-row gap-1.5 justify-center items-center bg-white outline outline-[#E4E9DF] -outline-offset-0.5 rounded-full cursor-pointer hover:bg-[#F7F8F2] transition-colors"
               >
                 <Plus className="box-border size-3.5 shrink-0 text-[#176B4D]" />
