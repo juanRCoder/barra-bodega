@@ -12,13 +12,19 @@ const PAYMENT_METHODS: {
   { id: 'yape', label: 'Yape/Plin', Icon: CreditCard },
 ];
 
-const BALANCE = 24.5;
-
 const formatCurrency = (n: number) => `S/ ${n.toFixed(2)}`;
 
-export const RegisterPayment = () => {
+type RegisterPaymentProps = {
+  accountName: string;
+  balance: number;
+};
+
+export const RegisterPayment = ({
+  accountName,
+  balance,
+}: RegisterPaymentProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [amount, setAmount] = useState<string>(BALANCE.toFixed(2));
+  const [amount, setAmount] = useState<string>('');
   const [method, setMethod] = useState<PaymentMethod>('cash');
 
   const close = () => setIsOpen(false);
@@ -42,7 +48,10 @@ export const RegisterPayment = () => {
     <>
       <button
         type="button"
-        onClick={() => setIsOpen(true)}
+        onClick={() => {
+          setAmount(balance.toFixed(2));
+          setIsOpen(true);
+        }}
         data-pencil-name="Register Payment"
         className="box-border flex-1 h-10 flex flex-row gap-1.5 justify-center items-center bg-[#176B4D] rounded-full cursor-pointer hover:bg-[#104B37] transition-colors"
       >
@@ -98,7 +107,7 @@ export const RegisterPayment = () => {
                 Registrar pago
               </h2>
               <div className="text-[9.5px]/[normal] box-border text-[#65736B] font-[Inter,system-ui,sans-serif] font-normal text-left whitespace-nowrap">
-                Rosa Pérez · Saldo actual {formatCurrency(BALANCE)}
+                {accountName} · Saldo actual {formatCurrency(balance)}
               </div>
             </div>
             <button

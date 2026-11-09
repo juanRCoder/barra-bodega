@@ -9,56 +9,10 @@ import {
   ShoppingBag,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-
-type MovementType = 'order' | 'payment';
-
-type Movement = {
-  id: string;
-  type: MovementType;
-  items: string[];
-  description?: string;
-  date: string;
-  amount: number; // positivo = pedido, negativo = pago
-};
-
-const MOVEMENTS: Movement[] = [
-  {
-    id: 'm1',
-    type: 'order',
-    items: ['2 x Coca Cola 500 ml'],
-    date: 'Hoy · 09:12',
-    amount: 14.0,
-  },
-  {
-    id: 'm2',
-    type: 'payment',
-    description: 'Pago en efectivo',
-    items: [],
-    date: '11 mar · 18:05',
-    amount: -10.0,
-  },
-  {
-    id: 'm3',
-    type: 'order',
-    items: [
-      'Arroz 1 kg',
-      '1 x Atun',
-      '1 x Pokeke 300ml',
-      '3 x Ace Sapolio 500ml',
-      '1 x Comida de perro',
-    ],
-    date: '10 mar · 16:20',
-    amount: 11.65,
-  },
-  {
-    id: 'm4',
-    type: 'order',
-    items: ['Pan francés 1 kg', '1 x Manty Mantequilla Pote 90gr'],
-    date: '09 mar · 11:40',
-    amount: 6.0,
-  },
-];
+import { useNavigate, useParams } from 'react-router-dom';
+import { useAccount } from '@/hooks/useAccounts';
+import { AccountsApiError } from '@/services/accounts.service';
+import type { AccountMovement } from '@/types/account.type';
 
 const TABS = [
   { id: 'all' as const, label: 'Todo', Icon: Layers },
@@ -67,22 +21,46 @@ const TABS = [
 ];
 
 const ITEMS_PER_PAGE = 4;
-
+type MovementType = AccountMovement['type'];
 const formatAmount = (amount: number) => {
   const sign = amount >= 0 ? '+' : '−';
   return `${sign} S/ ${Math.abs(amount).toFixed(2)}`;
 };
 
+const formatPhone = (phone: string) =>
+  /^\d{9}$/.test(phone)
+    ? phone.replace(/(\d{3})(\d{3})(\d{3})/, '$1 $2 $3')
+    : phone;
+
+const formatMovementDate = (date: string) =>
+  new Date(date).toLocaleString('es-PE', {
+    day: '2-digit',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
 export default function AccountDetail() {
   const navigate = useNavigate();
+  const { id = '' } = useParams();
+  const accountQuery = useAccount(id);
+  const account = accountQuery.data;
 
   const [activeTab, setActiveTab] = useState<'all' | MovementType>('all');
   const [page, setPage] = useState(1);
 
   const filteredMovements = useMemo(() => {
-    if (activeTab === 'all') return MOVEMENTS;
-    return MOVEMENTS.filter((m) => m.type === activeTab);
-  }, [activeTab]);
+    const movements = account?.movements ?? [];
+    const filtered =
+      activeTab === 'all'
+        ? movements
+        : movements.filter((movement) => movement.type === activeTab);
+
+    return filtered.map((movement) => ({
+      ...movement,
+      amount: movement.type === 'payment' ? -movement.amount : movement.amount,
+    }));
+  }, [account?.movements, activeTab]);
 
   const totalPages = Math.max(
     1,
@@ -105,6 +83,45 @@ export default function AccountDetail() {
 
   const goPrev = () => setPage((p) => Math.max(1, p - 1));
   const goNext = () => setPage((p) => Math.min(totalPages, p + 1));
+
+  if (accountQuery.isPending) {
+    return (
+      <div
+        className="flex min-h-screen items-center justify-center bg-[#F7F8F2] text-sm text-[#65736B]"
+        role="status"
+      >
+        Cargando cuenta…
+      </div>
+    );
+  }
+
+  if (accountQuery.isError || !account) {
+    const message =
+      accountQuery.error instanceof AccountsApiError
+        ? accountQuery.error.message
+        : 'No se pudo cargar la cuenta.';
+
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-[#F7F8F2] px-4 text-sm text-[#65736B]">
+        <p role="alert">{message}</p>
+        <button
+          type="button"
+          onClick={() => navigate('/accounts')}
+          className="cursor-pointer rounded-full bg-[#176B4D] px-4 py-2 font-semibold text-white"
+        >
+          Volver a cuentas
+        </button>
+      </div>
+    );
+  }
+
+  const initials = account.name
+    .split(/\s+/)
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+  const hasDebt = account.debt > 0;
 
   return (
     <div
@@ -138,13 +155,18 @@ export default function AccountDetail() {
                 data-pencil-name="Name"
                 className="text-[15px]/[normal] box-border text-[#17221D] font-[Inter,system-ui,sans-serif] font-extrabold tracking-[-0.4px] text-left whitespace-nowrap"
               >
-                Rosa Pérez
+                {account.name}
               </div>
               <div
                 data-pencil-name="Sub"
                 className="text-[8.5px]/[normal] box-border text-[#65736B] font-[Inter,system-ui,sans-serif] font-normal text-left whitespace-nowrap"
               >
-                Cuenta desde 24, agosto 2023
+                Cuenta desde{' '}
+                {new Date(account.createdAt).toLocaleDateString('es-PE', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                })}
               </div>
             </div>
           </div>
@@ -166,13 +188,13 @@ export default function AccountDetail() {
             >
               <div
                 data-pencil-name="Avatar"
-                className="box-border size-10.5 shrink-0 flex flex-row gap-0 justify-center items-center bg-[#EAF2DF] rounded-full"
+                className={`box-border size-10.5 shrink-0 flex flex-row gap-0 justify-center items-center rounded-full ${hasDebt ? 'bg-[#EAF2DF]' : 'bg-[#F1F3EC]'}`}
               >
                 <div
                   data-pencil-name="Initials"
-                  className="text-[12px]/[normal] box-border text-[#104B37] font-[Inter,system-ui,sans-serif] font-extrabold text-left whitespace-nowrap"
+                  className={`text-[12px]/[normal] box-border font-[Inter,system-ui,sans-serif] font-extrabold text-left whitespace-nowrap ${hasDebt ? 'text-[#104B37]' : 'text-[#65736B]'}`}
                 >
-                  RP
+                  {initials}
                 </div>
               </div>
               <div
@@ -183,7 +205,7 @@ export default function AccountDetail() {
                   data-pencil-name="Name"
                   className="text-[14px]/[normal] box-border text-[#17221D] font-[Inter,system-ui,sans-serif] font-normal tracking-[-0.3px] text-left whitespace-nowrap"
                 >
-                  Rosa Pérez
+                  {account.name}
                 </div>
                 <div
                   data-pencil-name="Phone Row"
@@ -194,19 +216,19 @@ export default function AccountDetail() {
                     data-pencil-name="Phone"
                     className="text-[9px]/[normal] box-border text-[#65736B] font-[Inter,system-ui,sans-serif] font-normal text-left whitespace-nowrap"
                   >
-                    987 654 321
+                    {formatPhone(account.phone)}
                   </div>
                 </div>
               </div>
               <div
                 data-pencil-name="Badge"
-                className="box-border w-fit shrink-0 h-fit flex flex-row gap-0 px-2 py-0.75 justify-start items-center bg-[#FBEAE6] rounded-full"
+                className={`box-border w-fit shrink-0 h-fit flex flex-row gap-0 px-2 py-0.75 justify-start items-center rounded-full ${hasDebt ? 'bg-[#FBEAE6]' : 'bg-[#EAF2DF]'}`}
               >
                 <div
                   data-pencil-name="Text"
-                  className="text-[8px]/[normal] box-border text-[#B5392B] font-[Inter,system-ui,sans-serif] font-bold text-left whitespace-nowrap"
+                  className={`text-[8px]/[normal] box-border font-[Inter,system-ui,sans-serif] font-bold text-left whitespace-nowrap ${hasDebt ? 'text-[#B5392B]' : 'text-[#104B37]'}`}
                 >
-                  Con deuda
+                  {hasDebt ? 'Con deuda' : 'Saldado'}
                 </div>
               </div>
             </div>
@@ -232,9 +254,9 @@ export default function AccountDetail() {
                 </div>
                 <div
                   data-pencil-name="Value"
-                  className="text-[27px]/[normal] box-border text-[#B5392B] font-[Inter,system-ui,sans-serif] font-normal tracking-[-1.2px] text-left whitespace-nowrap"
+                  className={`text-[27px]/[normal] box-border font-[Inter,system-ui,sans-serif] font-normal tracking-[-1.2px] text-left whitespace-nowrap ${hasDebt ? 'text-[#B5392B]' : 'text-[#176B4D]'}`}
                 >
-                  S/ 24.50
+                  S/ {account.debt.toFixed(2)}
                 </div>
               </div>
             </div>
@@ -243,7 +265,10 @@ export default function AccountDetail() {
               data-pencil-name="Buttons"
               className="box-border w-full h-fit shrink-0 flex flex-row gap-1.75 justify-start items-start flex-wrap"
             >
-              <RegisterPayment />
+              <RegisterPayment
+                accountName={account.name}
+                balance={account.debt}
+              />
               <button
                 type="button"
                 data-pencil-name="Add Product"
@@ -351,10 +376,10 @@ export default function AccountDetail() {
                     <div className="box-border flex-1 min-w-0 h-fit flex flex-col gap-px justify-start items-start">
                       {isPayment ? (
                         <div className="text-[10.5px]/[normal] box-border text-[#17221D] font-[Inter,system-ui,sans-serif] font-semibold text-left whitespace-nowrap">
-                          {m.description}
+                          Pago registrado
                         </div>
                       ) : (
-                        m.items.map((item, i) => (
+                        (m.items ?? ['Pedido']).map((item, i) => (
                           <div
                             key={i}
                             className="text-[10.5px]/[normal] box-border text-[#17221D] font-[Inter,system-ui,sans-serif] font-semibold text-left whitespace-nowrap"
@@ -364,7 +389,10 @@ export default function AccountDetail() {
                         ))
                       )}
                       <div className="text-[8.5px]/[normal] box-border text-[#65736B] font-[Inter,system-ui,sans-serif] font-normal text-left whitespace-nowrap">
-                        {m.date}
+                        {formatMovementDate(m.date)}
+                        {m.status && m.status !== 'PAID'
+                          ? ` · ${m.status === 'PENDING' ? 'Pendiente' : 'Anulado'}`
+                          : ''}
                       </div>
                     </div>
 

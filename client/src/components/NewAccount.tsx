@@ -1,6 +1,9 @@
 import type { NewAccountForm } from '@/types/account.type';
 import { Phone, Plus, User, UserPlus, X } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
+import { useCreateAccount } from '@/hooks/useAccounts';
+import { AccountsApiError } from '@/services/accounts.service';
+import { Button } from '@/components/ui/button';
 
 const INITIAL_FORM: NewAccountForm = { name: '', phone: '' };
 
@@ -14,35 +17,37 @@ const formatPhone = (raw: string) =>
 export const NewAccount = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [form, setForm] = useState<NewAccountForm>(INITIAL_FORM);
+  const createAccountMutation = useCreateAccount();
 
   const close = () => setIsOpen(false);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const payload = {
-      name: form.name.trim(),
-      phonePrefix: '+51',
-      phone: form.phone.replace(/\s/g, ''),
-    };
-    console.log(payload);
-    // TODO: llamar API
-    setForm(INITIAL_FORM);
-    close();
+    createAccountMutation.mutate(
+      { name: form.name.trim(), phone: form.phone.replace(/\D/g, '') },
+      {
+        onSuccess: () => {
+          setForm(INITIAL_FORM);
+          close();
+        },
+      }
+    );
   };
 
   return (
     <>
-      <button
+      <Button
         type="button"
-        onClick={() => setIsOpen(true)}
-        className="box-border w-fit shrink-0 h-8.5 flex flex-row gap-1.5 px-3.25 py-0 justify-start items-center bg-[#176B4D] rounded-full hover:bg-[#104B37] transition-colors cursor-pointer"
+        size="sm"
+        onClick={() => {
+          createAccountMutation.reset();
+          setIsOpen(true);
+        }}
+        className="box-border w-fit shrink-0 h-8.5 rounded-full bg-[#176B4D] px-3 gap-1.5 text-white hover:bg-[#104B37] text-[11px]/[normal] cursor-pointer"
       >
-        <Plus className="box-border size-3.5 shrink-0 text-white" />
-        <div className="text-[11px]/[normal] box-border text-white font-[Inter,system-ui,sans-serif] font-normal text-left whitespace-nowrap">
-          Nuevo
-        </div>
-      </button>
-
+        <Plus data-icon="inline-start" />
+        Nuevo
+      </Button>
       {/* Overlay */}
       <div
         className={`fixed inset-0 z-50 flex transition-opacity duration-300 ease-in-out ${
@@ -186,6 +191,7 @@ export const NewAccount = () => {
             <button
               type="submit"
               data-pencil-name="Register"
+              disabled={createAccountMutation.isPending}
               className="box-border w-full h-12 shrink-0 [box-shadow:0px_10px_24px_#176B4D33] flex flex-row gap-2 justify-center items-center bg-[#176B4D] rounded-full cursor-pointer hover:bg-[#104B37] transition-colors"
             >
               <UserPlus className="size-4 text-white" />
@@ -193,9 +199,16 @@ export const NewAccount = () => {
                 data-pencil-name="Label"
                 className="text-[12.5px]/[normal] box-border text-white font-[Inter,system-ui,sans-serif] font-bold text-left whitespace-nowrap"
               >
-                Registrar
+                {createAccountMutation.isPending ? 'Registrando…' : 'Registrar'}
               </span>
             </button>
+            {createAccountMutation.isError && (
+              <p className="m-0 text-[11px] text-[#B5392B]" role="alert">
+                {createAccountMutation.error instanceof AccountsApiError
+                  ? createAccountMutation.error.message
+                  : 'No se pudo registrar la cuenta. Intenta nuevamente.'}
+              </p>
+            )}
           </form>
         </div>
       </div>
