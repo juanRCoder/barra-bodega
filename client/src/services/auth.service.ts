@@ -89,7 +89,10 @@ export async function refreshAuthSession(): Promise<AuthUser | null> {
     );
     return result.user;
   } catch (error) {
-    if (error instanceof AuthApiError && error.status === 401) {
+    if (
+      error instanceof AuthApiError &&
+      (error.status === 401 || error.status === 400)
+    ) {
       setAccessToken(null);
       return null;
     }
