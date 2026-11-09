@@ -1,19 +1,73 @@
 import { ArrowLeft, Barcode, CircleCheck, Plus } from 'lucide-react';
-import { useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { useCreateProduct } from '@/hooks/useProducts';
 import { ProductsApiError } from '@/services/products.service';
 
 export default function NewProduct() {
   const navigate = useNavigate();
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const readerRef = useRef<HTMLDivElement>(null);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
 
   const [name, setName] = useState('');
   const [barcode, setBarcode] = useState('');
   const [price, setPrice] = useState('');
   const [stock, setStock] = useState('0');
-  const [cameraError] = useState(false);
+  const [cameraError, setCameraError] = useState(false);
   const createProductMutation = useCreateProduct();
+
+  useEffect(() => {
+    if (!readerRef.current) return;
+
+    const scanner = new Html5Qrcode(readerRef.current.id, {
+      formatsToSupport: [
+        Html5QrcodeSupportedFormats.EAN_13,
+        Html5QrcodeSupportedFormats.CODE_128,
+        Html5QrcodeSupportedFormats.QR_CODE,
+      ],
+      experimentalFeatures: {
+        useBarCodeDetectorIfSupported: true,
+      },
+      verbose: false,
+    });
+    scannerRef.current = scanner;
+
+    let cancelled = false;
+
+    // 👇 Guardamos la promesa de start() para usarla en el cleanup
+    const startPromise = scanner
+      .start(
+        { facingMode: 'environment' },
+        { fps: 15, qrbox: { width: 300, height: 150 } },
+        (decodedText) => {
+          if (cancelled) return;
+          setBarcode(decodedText);
+          // Si el escaneo tiene éxito, detenemos de forma segura
+          scanner.stop().catch(() => {});
+        },
+        () => {}
+      )
+      .catch((err) => {
+        if (!cancelled) {
+          console.error('Camera start error', err);
+          setCameraError(true);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+
+      // 👇 CLAVE: esperar a que start() termine (éxito o fallo) y LUEGO detener.
+      // Esto cubre el caso de navegar antes de que la cámara esté lista.
+      startPromise.finally(() => {
+        scanner
+          .stop()
+          .then(() => scanner.clear())
+          .catch(() => {});
+      });
+    };
+  }, []);
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -53,12 +107,10 @@ export default function NewProduct() {
           className="relative box-border w-full h-[30%] flex-1 min-h-0 overflow-hidden bg-black"
         >
           {/* Video de la cámara trasera (reemplaza el gradiente) */}
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            className="absolute inset-0 h-full w-full object-cover"
+          <div
+            id="barcode-reader"
+            ref={readerRef}
+            className="absolute inset-0 h-full w-full [&>video]:h-full [&>video]:w-full [&>video]:object-cover"
           />
 
           {/* Fallback si la cámara falla */}
@@ -83,13 +135,14 @@ export default function NewProduct() {
           </div>
 
           {/* Scan Frame centrado — se mantiene con sus barras */}
-          <div className="absolute inset-0 z-2 flex items-center justify-center mb-4">
-            <div className="relative h-30 w-full max-w-64.5">
+          <div className="pointer-events-none absolute inset-0 z-2 flex items-center justify-center mb-4">
+            {/* DENTRO DE ESTE CUADRO DEBE DETECTAR EL CODIGO DE BARRA */}
+            {/* <div className="relative h-30 w-full max-w-64.5">
               <div className="absolute -left-1.5 -top-1.5 box-content h-[26.5px] w-[26.5px] border-solid border-[#D9F36A] [border-width:3px_0_0_3px]" />
               <div className="absolute -right-1.5 -top-1.5 box-content h-[26.5px] w-[26.5px] border-solid border-[#D9F36A] [border-width:3px_3px_0_0]" />
               <div className="absolute -bottom-1.5 -left-1.5 box-content h-[26.5px] w-[26.5px] border-solid border-[#D9F36A] [border-width:0_0_3px_3px]" />
               <div className="absolute -bottom-1.5 -right-1.5 box-content h-[26.5px] w-[26.5px] border-solid border-[#D9F36A] [border-width:0_3px_3px_0]" />
-            </div>
+            </div> */}
           </div>
 
           {/* Hint — se mantiene */}

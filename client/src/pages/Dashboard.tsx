@@ -19,7 +19,7 @@ const currentDate = new Intl.DateTimeFormat('es-PE', {
 //   { hour: '16', value: 58, height: 44 },
 //   { hour: '18', value: 88, height: 61 },
 //   { hour: '20', value: 120, height: 80, highlight: true },
-//   { hour: '22', value: 64, height: 47 },
+//   { hour: '22', value: 64, height: 47 }, a
 // ];
 
 export default function Dashboard() {
