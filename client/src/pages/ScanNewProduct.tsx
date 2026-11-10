@@ -9,6 +9,7 @@ export default function NewProduct() {
   const navigate = useNavigate();
   const readerRef = useRef<HTMLDivElement>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const lastScannedBarcodeRef = useRef<string | null>(null);
 
   const [name, setName] = useState('');
   const [barcode, setBarcode] = useState('');
@@ -33,9 +34,11 @@ export default function NewProduct() {
     });
     scannerRef.current = scanner;
 
+    const scanSound = new Audio('/store-scanner-beep.mp3');
+    scanSound.preload = 'auto';
+
     let cancelled = false;
 
-    // 👇 Guardamos la promesa de start() para usarla en el cleanup
     const startPromise = scanner
       .start(
         { facingMode: 'environment' },
@@ -43,8 +46,14 @@ export default function NewProduct() {
         (decodedText) => {
           if (cancelled) return;
           setBarcode(decodedText);
-          // Si el escaneo tiene éxito, detenemos de forma segura
-          scanner.stop().catch(() => {});
+          // El mismo código puede detectarse en varios frames seguidos.
+          if (lastScannedBarcodeRef.current !== decodedText) {
+            lastScannedBarcodeRef.current = decodedText;
+            scanSound.currentTime = 0;
+            void scanSound.play().catch((err: unknown) => {
+              console.error('Scanner beep playback error', err);
+            });
+          }
         },
         () => {}
       )
@@ -57,9 +66,9 @@ export default function NewProduct() {
 
     return () => {
       cancelled = true;
+      scanSound.pause();
 
-      // 👇 CLAVE: esperar a que start() termine (éxito o fallo) y LUEGO detener.
-      // Esto cubre el caso de navegar antes de que la cámara esté lista.
+      // La cámara solo se detiene al salir de esta pantalla.
       startPromise.finally(() => {
         scanner
           .stop()
