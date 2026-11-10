@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import accountsRouter from '@/routes/accounts.route.js';
 import authRouter from '@/routes/auth.route.js';
+import ordersRouter from '@/routes/orders.route.js';
 import productsRouter from '@/routes/products.route.js';
 
 const apiRouter = Router();
@@ -8,6 +9,7 @@ const apiRouter = Router();
 apiRouter.use('/auth', authRouter);
 apiRouter.use('/accounts', accountsRouter);
 apiRouter.use('/products', productsRouter);
+apiRouter.use('/orders', ordersRouter);
 
 apiRouter.get('/', (_req, res) => {
   res.json({ message: 'API is working!' });

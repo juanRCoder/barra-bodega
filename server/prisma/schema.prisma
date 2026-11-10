@@ -19,11 +19,6 @@ enum Role {
   SUPER_ADMIN
 }
 
-enum PaymentType {
-  YAPE
-  CASH
-}
-
 enum OrderStatus {
   PAID
   PENDING
@@ -95,8 +90,8 @@ model ProductsAdmin {
   updated_at DateTime @updatedAt
 
   // Relaciones
-  admin         User           @relation(fields: [admin_id], references: [id], onDelete: Cascade)
-  product       Product        @relation(fields: [product_id], references: [id], onDelete: Restrict)
+  admin         User            @relation(fields: [admin_id], references: [id], onDelete: Cascade)
+  product       Product         @relation(fields: [product_id], references: [id], onDelete: Restrict)
   productsOrder ProductsOrder[]
 
   @@unique([admin_id, product_id])
@@ -139,14 +134,13 @@ model AccountPayment {
 }
 
 model Order {
-  id           String      @id @default(uuid()) @db.Uuid
-  admin_id     String      @db.Uuid
-  payment_type PaymentType @default(CASH)
-  account_id   String?     @db.Uuid
-  status       OrderStatus @default(PAID)
-  total        Decimal     @db.Decimal(10, 2)
-  created_at   DateTime    @default(now())
-  updated_at   DateTime    @updatedAt
+  id         String      @id @default(uuid()) @db.Uuid
+  admin_id   String      @db.Uuid
+  account_id String?     @db.Uuid
+  status     OrderStatus @default(PAID)
+  total      Decimal     @db.Decimal(10, 2)
+  created_at DateTime    @default(now())
+  updated_at DateTime    @updatedAt
 
   // Relaciones
   admin         User            @relation(fields: [admin_id], references: [id], onDelete: Restrict)
@@ -163,7 +157,8 @@ model Order {
 model ProductsOrder {
   id               String   @id @default(uuid()) @db.Uuid
   order_id         String   @db.Uuid
-  product_admin_id String   @db.Uuid
+  product_admin_id String?  @db.Uuid
+  manual_name      String?
   quantity         Int      @default(1)
   price            Decimal  @db.Decimal(10, 2)
   subtotal         Decimal  @db.Decimal(10, 2)
@@ -171,8 +166,8 @@ model ProductsOrder {
   updated_at       DateTime @updatedAt
 
   // Relaciones
-  order        Order         @relation(fields: [order_id], references: [id], onDelete: Cascade)
-  productAdmin ProductsAdmin @relation(fields: [product_admin_id], references: [id], onDelete: Restrict)
+  order        Order          @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  productAdmin ProductsAdmin? @relation(fields: [product_admin_id], references: [id], onDelete: Restrict)
 
   @@index([order_id])
   @@index([product_admin_id])

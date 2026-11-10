@@ -7,36 +7,35 @@ import {
   SelectGroup,
 } from '@/components/ui/select';
 import type { Product } from '@/types/scan.type';
-import {
-  ArrowLeft,
-  Banknote,
-  Barcode,
-  Check,
-  Plus,
-  Smartphone,
-  Users,
-} from 'lucide-react';
-import { useMemo, useRef, useState } from 'react';
+import { ArrowLeft, Barcode, Check, Plus, Users } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAccounts } from '@/hooks/useAccounts';
 import { AccountsApiError } from '@/services/accounts.service';
+import { useCreateOrder } from '@/hooks/useOrders';
+import {
+  getOrderProductByCode,
+  OrdersApiError,
+} from '@/services/orders.service';
+import type { ProductData } from '@/types/inventory.type';
+import {
+  Html5Qrcode,
+  Html5QrcodeScannerState,
+  Html5QrcodeSupportedFormats,
+} from 'html5-qrcode';
 
 const hiddenScrollbar =
   '[scrollbar-width:none] [-ms-overflow-style:none] ' +
   '[&::-webkit-scrollbar]:hidden';
 
-const INITIAL_PRODUCTS: Product[] = [
-  { id: '1', name: 'Coca Cola 500 ml', price: 7.0, qty: 2, total: 14.0 },
-  { id: '2', name: 'Atún Corbeta 300ml', price: 38.9, qty: 1, total: 38.9 },
-];
-
-type PaymentMethod = 'cash' | 'yape';
-
 export default function ScanNewOrder() {
   const navigate = useNavigate();
   const location = useLocation();
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const readerRef = useRef<HTMLDivElement>(null);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const scanLockRef = useRef(false);
   const accountsQuery = useAccounts();
+  const createOrderMutation = useCreateOrder();
   const accounts = accountsQuery.data?.accounts ?? [];
   const initialAccountId =
     location.state &&
@@ -46,14 +45,119 @@ export default function ScanNewOrder() {
       ? location.state.accountId
       : null;
 
-  const [cameraError] = useState(false);
-  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
+  const [cameraError, setCameraError] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
   const [customerId, setCustomerId] = useState<string | null>(initialAccountId);
   const [isManualEntryOpen, setIsManualEntryOpen] = useState(false);
   const [manualName, setManualName] = useState('');
   const [manualPrice, setManualPrice] = useState('');
+  const [barcodeError, setBarcodeError] = useState('');
   const [saleDone, setSaleDone] = useState(false);
+
+  const addInventoryProduct = useCallback((product: ProductData) => {
+    setProducts((current) => {
+      const existing = current.find(
+        (item) => !item.isManual && item.id === product.id
+      );
+      if (existing) {
+        return current.map((item) =>
+          item.id === product.id && !item.isManual
+            ? {
+                ...item,
+                qty: item.qty + 1,
+                total: (item.qty + 1) * item.price,
+              }
+            : item
+        );
+      }
+
+      return [
+        ...current,
+        {
+          id: product.id,
+          code: product.code,
+          name: product.name,
+          price: product.price,
+          qty: 1,
+          total: product.price,
+        },
+      ];
+    });
+  }, []);
+
+  const lookupBarcode = useCallback(
+    async (rawCode: string) => {
+      const code = rawCode.trim();
+      if (!code) return;
+
+      setBarcodeError('');
+      try {
+        const product = await getOrderProductByCode(code);
+        addInventoryProduct(product);
+      } catch (error) {
+        setBarcodeError(
+          error instanceof OrdersApiError
+            ? error.message
+            : 'No se pudo consultar el código. Intenta nuevamente.'
+        );
+      }
+    },
+    [addInventoryProduct]
+  );
+
+  useEffect(() => {
+    if (!readerRef.current) return;
+
+    const scanner = new Html5Qrcode(readerRef.current.id, {
+      formatsToSupport: [
+        Html5QrcodeSupportedFormats.EAN_13,
+        Html5QrcodeSupportedFormats.EAN_8,
+        Html5QrcodeSupportedFormats.CODE_128,
+        Html5QrcodeSupportedFormats.UPC_A,
+      ],
+      useBarCodeDetectorIfSupported: true,
+      verbose: false,
+    });
+    scannerRef.current = scanner;
+    let cancelled = false;
+
+    const startPromise = scanner
+      .start(
+        { facingMode: 'environment' },
+        { fps: 15, qrbox: { width: 260, height: 130 } },
+        (decodedText) => {
+          if (cancelled || scanLockRef.current) return;
+          scanLockRef.current = true;
+          void lookupBarcode(decodedText).finally(() => {
+            window.setTimeout(() => {
+              scanLockRef.current = false;
+            }, 900);
+          });
+        },
+        () => {}
+      )
+      .catch((error: unknown) => {
+        if (!cancelled) {
+          console.error('Camera start error', error);
+          setCameraError(true);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+      void startPromise
+        .then(async () => {
+          if (scanner.getState() === Html5QrcodeScannerState.SCANNING) {
+            await scanner.stop();
+          }
+          scanner.clear();
+          scannerRef.current = null;
+        })
+        .catch((error: unknown) => {
+          console.error('Camera stop error', error);
+        });
+    };
+  }, [lookupBarcode]);
 
   const total = useMemo(
     () => products.reduce((sum, p) => sum + p.price * p.qty, 0),
@@ -90,12 +194,14 @@ export default function ScanNewOrder() {
 
   const addManual = () => {
     const name = manualName.trim();
-    const price = parseFloat(manualPrice.replace(',', '.'));
-    if (!name || isNaN(price) || price <= 0) return;
+    const price = Number(manualPrice.replace(',', '.'));
+    if (!name || !Number.isFinite(price) || price <= 0) return;
 
-    // Si ya existe por nombre, suma cantidad
     const existing = products.find(
-      (p) => p.name.toLowerCase() === name.toLowerCase()
+      (p) =>
+        p.isManual &&
+        p.name.toLowerCase() === name.toLowerCase() &&
+        p.price === price
     );
     if (existing) {
       increment(existing.id);
@@ -103,7 +209,7 @@ export default function ScanNewOrder() {
       const id = `manual-${Date.now()}`;
       setProducts((prev) => [
         ...prev,
-        { id, name, price, qty: 1, total: price },
+        { id, name, price, qty: 1, total: price, isManual: true },
       ]);
     }
     setManualName('');
@@ -112,16 +218,34 @@ export default function ScanNewOrder() {
   };
 
   const handleRegister = () => {
-    if (products.length === 0) return;
-    // Aquí iría tu llamada al backend
-    console.log('Registrar venta', {
-      products,
-      total,
-      paymentMethod,
-      accountId: selectedAccount?.id ?? null,
-    });
-    setSaleDone(true);
-    setTimeout(() => setSaleDone(false), 2000);
+    if (products.length === 0 || createOrderMutation.isPending) return;
+
+    createOrderMutation.mutate(
+      {
+        accountId: selectedAccount?.id ?? null,
+        items: products.map((product) =>
+          product.isManual
+            ? {
+                type: 'manual',
+                name: product.name,
+                price: product.price,
+                quantity: product.qty,
+              }
+            : {
+                type: 'inventory',
+                productAdminId: product.id,
+                quantity: product.qty,
+              }
+        ),
+      },
+      {
+        onSuccess: () => {
+          setProducts([]);
+          setSaleDone(true);
+          window.setTimeout(() => setSaleDone(false), 2500);
+        },
+      }
+    );
   };
 
   return (
@@ -132,12 +256,10 @@ export default function ScanNewOrder() {
       <section className="flex h-full w-full max-w-97.5 flex-col overflow-hidden text-left">
         {/* ---------------- Cámara ---------------- */}
         <div className="relative box-border h-[40%] w-full shrink-0 overflow-hidden bg-black">
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            className="absolute inset-0 h-full w-full object-cover"
+          <div
+            id="order-barcode-reader"
+            ref={readerRef}
+            className="absolute inset-0 h-full w-full [&>video]:h-full [&>video]:w-full [&>video]:object-cover"
           />
 
           {cameraError && (
@@ -146,7 +268,7 @@ export default function ScanNewOrder() {
                 <Barcode aria-hidden="true" className="size-7 text-[#D9F36A]" />
                 <span>
                   No se pudo acceder a la cámara. Usa el marco como referencia o
-                  ingresa el código manualmente.
+                  verifica los permisos de cámara.
                 </span>
               </div>
             </div>
@@ -197,10 +319,10 @@ export default function ScanNewOrder() {
           <div className="w-full flex justify-between items-center">
             <div className="flex flex-col gap-px">
               <div className="text-[17px] text-[#17221D] tracking-[-0.5px]">
-                Venta en curso
+                Pedido en curso
               </div>
               <div className="text-[9px] text-[#65736B]">
-                {products.length} productos escaneados
+                {products.length} productos agregados
               </div>
             </div>
             <div className="p-[4px_9px] bg-[#EAF2DF] rounded-[999px]">
@@ -209,6 +331,12 @@ export default function ScanNewOrder() {
               </div>
             </div>
           </div>
+
+          {barcodeError && (
+            <p role="alert" className="m-0 w-full text-[10px] text-[#B5392B]">
+              {barcodeError}
+            </p>
+          )}
 
           {/* Productos */}
           <div className="w-full flex flex-col">
@@ -272,10 +400,10 @@ export default function ScanNewOrder() {
               type="button"
               onClick={() => setIsManualEntryOpen((open) => !open)}
               aria-expanded={isManualEntryOpen}
-              className="flex w-fit items-center gap-1.25 border-b border-[#E4E9DF] text-xs text-[#17221D]"
+              className="flex w-fit items-center gap-1.25 text-[11px] text-[#65736B] cursor-pointer"
             >
               <Plus className="size-3 text-[#176b4d]" />
-              <span>
+              <span className="underline">
                 {isManualEntryOpen
                   ? 'Cerrar registro manual'
                   : 'Agregar manual'}
@@ -283,69 +411,7 @@ export default function ScanNewOrder() {
             </button>
           </div>
 
-          {/* Método de pago */}
-          <div className="w-full flex flex-col gap-1.5">
-            <div className="text-[9.5px] text-[#65736B] font-semibold">
-              Método de pago
-            </div>
-            <div className="w-full flex gap-2">
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('cash')}
-                className={`cursor-pointer flex-1 h-10.5 flex gap-1.75 justify-center items-center rounded-xl transition ${
-                  paymentMethod === 'cash'
-                    ? 'bg-[#EAF2DF] outline outline-[#176B4D]'
-                    : 'bg-white outline outline-[#E4E9DF]'
-                }`}
-              >
-                <Banknote
-                  className={`w-3.5 h-3.5 ${
-                    paymentMethod === 'cash'
-                      ? 'text-[#176b4d]'
-                      : 'text-[#65736b]'
-                  }`}
-                />
-                <span
-                  className={`text-[10.5px] ${
-                    paymentMethod === 'cash'
-                      ? 'text-[#104B37] font-bold'
-                      : 'text-[#65736B]'
-                  }`}
-                >
-                  Efectivo
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('yape')}
-                className={`cursor-pointer flex-1 h-10.5 flex gap-1.75 justify-center items-center rounded-xl transition ${
-                  paymentMethod === 'yape'
-                    ? 'bg-[#EAF2DF] outline outline-[#176B4D]'
-                    : 'bg-white outline outline-[#E4E9DF]'
-                }`}
-              >
-                <Smartphone
-                  className={`w-3.5 h-3.5 ${
-                    paymentMethod === 'yape'
-                      ? 'text-[#176b4d]'
-                      : 'text-[#65736b]'
-                  }`}
-                />
-                <span
-                  className={`text-[10.5px] ${
-                    paymentMethod === 'yape'
-                      ? 'text-[#104B37] font-bold'
-                      : 'text-[#65736B]'
-                  }`}
-                >
-                  Yape
-                </span>
-              </button>
-            </div>
-          </div>
-
-          {accounts.length > 0 && (
+          {(accounts.length > 0 || accountsQuery.isPending) && (
             <div className="w-full">
               <Select
                 value={selectedAccount?.id ?? 'none'}
@@ -354,6 +420,7 @@ export default function ScanNewOrder() {
                 }
               >
                 <SelectTrigger
+                  disabled={accountsQuery.isPending}
                   className="
     w-full h-10.5 flex gap-2 px-2.75
     bg-[#FAFBF6] outline outline-[#E4E9DF] rounded-xl
@@ -442,7 +509,11 @@ export default function ScanNewOrder() {
           {/* Registrar venta */}
           <button
             type="submit"
-            disabled={products.length === 0}
+            disabled={
+              products.length === 0 ||
+              createOrderMutation.isPending ||
+              (Boolean(initialAccountId) && accountsQuery.isError)
+            }
             className={`w-full py-2.5 flex gap-2 justify-center items-center rounded-full transition [box-shadow:0px_10px_24px_#176B4D33] cursor-pointer ${
               saleDone
                 ? 'bg-[#104B37]'
@@ -453,18 +524,35 @@ export default function ScanNewOrder() {
               <>
                 <Check className="w-4 h-4 text-white" />
                 <span className="text-[12px] text-white font-bold">
-                  Venta registrada
+                  Pedido registrado
                 </span>
               </>
             ) : (
               <>
                 <Check className="w-4 h-4 text-white" />
                 <span className="text-[12px] text-white font-bold">
-                  Registrar venta · S/ {total.toFixed(2)}
+                  {createOrderMutation.isPending
+                    ? 'Registrando pedido…'
+                    : `Registrar pedido · S/ ${total.toFixed(2)}`}
                 </span>
               </>
             )}
           </button>
+          <div className="w-full text-center text-[9px] text-[#65736B]">
+            {selectedAccount
+              ? `Quedará pendiente en la cuenta de ${selectedAccount.name}`
+              : 'Se registrará como pagado'}
+          </div>
+          {createOrderMutation.isError && (
+            <p
+              role="alert"
+              className="m-0 w-full text-center text-[10px] text-[#B5392B]"
+            >
+              {createOrderMutation.error instanceof OrdersApiError
+                ? createOrderMutation.error.message
+                : 'No se pudo registrar el pedido. Intenta nuevamente.'}
+            </p>
+          )}
         </form>
       </section>
     </div>

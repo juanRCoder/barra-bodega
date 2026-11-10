@@ -119,7 +119,8 @@ export class AccountsService {
         amount: order.total.toNumber(),
         status: order.status,
         items: order.productsOrder.map(
-          (item) => `${item.quantity} x ${item.productAdmin.product.name}`
+          (item) =>
+            `${item.quantity} x ${item.manual_name ?? item.productAdmin?.product.name ?? 'Producto'}`
         ),
       })),
       ...account.accountPayments.map((payment) => ({
