@@ -34,6 +34,7 @@ export default function ScanNewOrder() {
   const readerRef = useRef<HTMLDivElement>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const scanLockRef = useRef(false);
+  const scannerBeepRef = useRef<HTMLAudioElement | null>(null);
   const accountsQuery = useAccounts();
   const createOrderMutation = useCreateOrder();
   const accounts = accountsQuery.data?.accounts ?? [];
@@ -52,7 +53,16 @@ export default function ScanNewOrder() {
   const [manualName, setManualName] = useState('');
   const [manualPrice, setManualPrice] = useState('');
   const [barcodeError, setBarcodeError] = useState('');
-  const [saleDone, setSaleDone] = useState(false);
+
+  const playScannerBeep = useCallback(() => {
+    const beep =
+      scannerBeepRef.current ??
+      (scannerBeepRef.current = new Audio('/store-scanner-beep.mp3'));
+    beep.currentTime = 0;
+    void beep.play().catch((error: unknown) => {
+      console.error('Scanner beep playback error', error);
+    });
+  }, []);
 
   const addInventoryProduct = useCallback((product: ProductData) => {
     setProducts((current) => {
@@ -94,6 +104,7 @@ export default function ScanNewOrder() {
       try {
         const product = await getOrderProductByCode(code);
         addInventoryProduct(product);
+        playScannerBeep();
       } catch (error) {
         setBarcodeError(
           error instanceof OrdersApiError
@@ -102,7 +113,7 @@ export default function ScanNewOrder() {
         );
       }
     },
-    [addInventoryProduct]
+    [addInventoryProduct, playScannerBeep]
   );
 
   useEffect(() => {
@@ -240,9 +251,7 @@ export default function ScanNewOrder() {
       },
       {
         onSuccess: () => {
-          setProducts([]);
-          setSaleDone(true);
-          window.setTimeout(() => setSaleDone(false), 2500);
+          navigate('/');
         },
       }
     );
@@ -514,29 +523,14 @@ export default function ScanNewOrder() {
               createOrderMutation.isPending ||
               (Boolean(initialAccountId) && accountsQuery.isError)
             }
-            className={`w-full py-2.5 flex gap-2 justify-center items-center rounded-full transition [box-shadow:0px_10px_24px_#176B4D33] cursor-pointer ${
-              saleDone
-                ? 'bg-[#104B37]'
-                : 'bg-[#176B4D] disabled:opacity-40 disabled:cursor-not-allowed'
-            }`}
+            className="w-full py-2.5 flex gap-2 justify-center items-center rounded-full transition [box-shadow:0px_10px_24px_#176B4D33] cursor-pointer bg-[#176B4D] disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {saleDone ? (
-              <>
-                <Check className="w-4 h-4 text-white" />
-                <span className="text-[12px] text-white font-bold">
-                  Pedido registrado
-                </span>
-              </>
-            ) : (
-              <>
-                <Check className="w-4 h-4 text-white" />
-                <span className="text-[12px] text-white font-bold">
-                  {createOrderMutation.isPending
-                    ? 'Registrando pedido…'
-                    : `Registrar pedido · S/ ${total.toFixed(2)}`}
-                </span>
-              </>
-            )}
+            <Check className="w-4 h-4 text-white" />
+            <span className="text-[12px] text-white font-bold">
+              {createOrderMutation.isPending
+                ? 'Registrando pedido…'
+                : `Registrar pedido · S/ ${total.toFixed(2)}`}
+            </span>
           </button>
           <div className="w-full text-center text-[9px] text-[#65736B]">
             {selectedAccount
