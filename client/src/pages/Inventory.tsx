@@ -12,7 +12,7 @@ import {
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 6;
 
 const getVisiblePages = (currentPage: number, pageCount: number) => {
   if (pageCount <= 5) {
@@ -74,10 +74,10 @@ export default function Inventory() {
 
   return (
     <div
-      className="flex min-h-screen w-full justify-center bg-[#F7F8F2] text-[#17221D]"
+      className="flex w-full justify-center text-[#17221D]"
       style={{ fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif' }}
     >
-      <section className="flex w-full max-w-97.5 flex-col gap-3 p-3 text-left">
+      <section className="flex w-full max-w-97.5 flex-col gap-3 px-3 pt-3 text-left">
         <div className="box-border flex min-h-11 w-full shrink-0 flex-wrap items-center justify-between gap-3">
           <div className="box-border flex min-w-0 flex-1 flex-row items-center justify-start gap-2.5">
             <Sidebar />
@@ -163,7 +163,7 @@ export default function Inventory() {
               ))}
 
               {totalPages > 1 && (
-                <div className="box-border flex h-fit w-full shrink-0 flex-row items-center justify-center gap-1.5 pt-1.5">
+                <div className="box-border flex h-fit w-full shrink-0 flex-row items-center justify-center gap-1.5">
                   <button
                     type="button"
                     aria-label="Página anterior"

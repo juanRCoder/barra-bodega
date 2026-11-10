@@ -42,7 +42,7 @@ export default function NewProduct() {
     const startPromise = scanner
       .start(
         { facingMode: 'environment' },
-        { fps: 15, qrbox: { width: 300, height: 150 } },
+        { fps: 15, qrbox: { width: 260, height: 130 } },
         (decodedText) => {
           if (cancelled) return;
           setBarcode(decodedText);
@@ -106,14 +106,14 @@ export default function NewProduct() {
 
   return (
     <div
-      className="flex h-screen w-full justify-center overflow-hidden bg-[#F7F8F2] text-[#17221D]"
+      className="flex h-dvh w-full justify-center overflow-hidden bg-[#F7F8F2] text-[#17221D]"
       style={{ fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif' }}
     >
       <section className="flex h-full w-full max-w-97.5 flex-col overflow-hidden text-left">
         {/* ===== Scanner con cámara ===== */}
         <div
           data-pencil-name="Camera"
-          className="relative box-border w-full h-[30%] flex-1 min-h-0 overflow-hidden bg-black"
+          className="relative box-border h-[40%] w-full shrink-0 overflow-hidden bg-black"
         >
           {/* Video de la cámara trasera (reemplaza el gradiente) */}
           <div
@@ -125,8 +125,12 @@ export default function NewProduct() {
           {/* Fallback si la cámara falla */}
           {cameraError && (
             <div className="absolute inset-0 flex items-center justify-center bg-[linear-gradient(-151.107deg,#0B1A14_13.019%,#173E2C_86.981%)]">
-              <div className="px-6 text-center text-[10px]/[normal] font-[Inter,system-ui,sans-serif] text-[#D7E4D5]">
-                No se pudo acceder a la cámara. Ingresa el código manualmente.
+              <div className="flex flex-col items-center gap-2 px-6 text-center text-[10px]/[normal] font-[Inter,system-ui,sans-serif] text-[#D7E4D5]">
+                <Barcode aria-hidden="true" className="size-7 text-[#D9F36A]" />
+                <span>
+                  No se pudo acceder a la cámara. Usa el marco como referencia o
+                  ingresa el código manualmente.
+                </span>
               </div>
             </div>
           )}
@@ -143,21 +147,22 @@ export default function NewProduct() {
             </button>
           </div>
 
-          {/* Scan Frame centrado — se mantiene con sus barras */}
-          <div className="pointer-events-none absolute inset-0 z-2 flex items-center justify-center mb-4">
-            {/* DENTRO DE ESTE CUADRO DEBE DETECTAR EL CODIGO DE BARRA */}
-            {/* <div className="relative h-30 w-full max-w-64.5">
-              <div className="absolute -left-1.5 -top-1.5 box-content h-[26.5px] w-[26.5px] border-solid border-[#D9F36A] [border-width:3px_0_0_3px]" />
-              <div className="absolute -right-1.5 -top-1.5 box-content h-[26.5px] w-[26.5px] border-solid border-[#D9F36A] [border-width:3px_3px_0_0]" />
-              <div className="absolute -bottom-1.5 -left-1.5 box-content h-[26.5px] w-[26.5px] border-solid border-[#D9F36A] [border-width:0_0_3px_3px]" />
-              <div className="absolute -bottom-1.5 -right-1.5 box-content h-[26.5px] w-[26.5px] border-solid border-[#D9F36A] [border-width:0_3px_3px_0]" />
-            </div> */}
+          {/* Guía visual alineada con el área de escaneo de 260 × 130 px. */}
+          <div className="pointer-events-none absolute inset-0 z-2 flex items-center justify-center">
+            <div className="relative aspect-2/1 w-[min(260px,calc(100%-2rem))]">
+              <div className="absolute -left-1 -top-1 size-7 border-l-[3px] border-t-[3px] border-[#D9F36A]" />
+              <div className="absolute -right-1 -top-1 size-7 border-r-[3px] border-t-[3px] border-[#D9F36A]" />
+              <div className="absolute -bottom-1 -left-1 size-7 border-b-[3px] border-l-[3px] border-[#D9F36A]" />
+              <div className="absolute -bottom-1 -right-1 size-7 border-b-[3px] border-r-[3px] border-[#D9F36A]" />
+            </div>
           </div>
 
           {/* Hint — se mantiene */}
           <div className="absolute inset-x-0 bottom-3 z-10 flex flex-col items-center gap-2 px-4">
             <div className="box-border text-center text-[10px]/[normal] font-[Inter,system-ui,sans-serif] font-normal whitespace-nowrap text-[#D7E4D5]">
-              Apunta al código de barras dentro del marco
+              {cameraError
+                ? 'Coloca el código dentro del marco de referencia'
+                : 'Apunta al código de barras dentro del marco'}
             </div>
           </div>
         </div>
@@ -166,7 +171,7 @@ export default function NewProduct() {
         <form
           onSubmit={handleSubmit}
           data-pencil-name="Nuevo producto Sheet"
-          className="box-border flex w-full h-[70%] shrink-0 flex-col items-start justify-start gap-3 rounded-t-3xl bg-[#FFFFFF] px-4.5 pt-2.5 pb-5 [box-shadow:0px_-20px_60px_#13362633]"
+          className="box-border flex h-[60%] w-full shrink-0 flex-col items-start justify-start gap-3 rounded-t-3xl bg-[#FFFFFF] px-4.5 pt-2.5 pb-5 [box-shadow:0px_-20px_60px_#13362633]"
         >
           <div className="flex h-1 w-full shrink-0 flex-row items-start justify-center gap-0">
             <div className="h-1 w-9 shrink-0 rounded-full bg-[#E4E9DF]" />

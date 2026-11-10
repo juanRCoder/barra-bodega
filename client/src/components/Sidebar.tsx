@@ -125,12 +125,12 @@ export const Sidebar = () => {
           aria-label="Menú principal"
           aria-modal="true"
           role="dialog"
-          className={`box-border w-75.5 min-h-screen [box-shadow:10px_0px_30px_#111C1740] absolute left-0 top-0 flex flex-col gap-4 p-[18px_14px] justify-between items-start bg-[#FFFFFF] rounded-[0px_24px_24px_0px] transition-transform duration-300 ease-in-out ${
+          className={`box-border w-75.5 h-full [box-shadow:10px_0px_30px_#111C1740] absolute left-0 top-0 flex flex-col gap-4 p-[18px_14px] justify-between items-start bg-[#FFFFFF] rounded-[0px_24px_24px_0px] transition-transform duration-300 ease-in-out ${
             isOpen ? 'translate-x-0' : '-translate-x-full'
           }`}
         >
           {/* --- SECCIÓN SUPERIOR --- */}
-          <section className="box-border w-full h-fit shrink-0 flex flex-col gap-3.5 justify-start items-start">
+          <section className="flex-1 box-border w-full h-fit shrink-0 flex flex-col gap-3.5 justify-start items-start">
             <div className="box-border w-full h-fit shrink-0 flex flex-row gap-0 justify-between items-center">
               <div className="box-border w-fit shrink-0 h-fit flex flex-row gap-2.25 justify-start items-center">
                 <div className="flex h-7.5 w-7.5 items-center justify-center rounded-[9px] bg-[#D9F36A]">
@@ -240,7 +240,7 @@ export const Sidebar = () => {
             )}
 
             <div className="pt-2 text-[8px]/[normal] text-[#65736B] font-[Inter,system-ui,sans-serif] font-normal text-left whitespace-nowrap">
-              BarraBodega v1.0 · 3 dispositivos
+              BarraBodega v1.0
             </div>
           </section>
         </aside>

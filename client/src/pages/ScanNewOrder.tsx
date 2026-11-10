@@ -10,6 +10,7 @@ import type { Product } from '@/types/scan.type';
 import {
   ArrowLeft,
   Banknote,
+  Barcode,
   Check,
   Plus,
   Smartphone,
@@ -49,6 +50,7 @@ export default function ScanNewOrder() {
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
   const [customerId, setCustomerId] = useState<string | null>(initialAccountId);
+  const [isManualEntryOpen, setIsManualEntryOpen] = useState(false);
   const [manualName, setManualName] = useState('');
   const [manualPrice, setManualPrice] = useState('');
   const [saleDone, setSaleDone] = useState(false);
@@ -106,6 +108,7 @@ export default function ScanNewOrder() {
     }
     setManualName('');
     setManualPrice('');
+    setIsManualEntryOpen(false);
   };
 
   const handleRegister = () => {
@@ -123,12 +126,12 @@ export default function ScanNewOrder() {
 
   return (
     <div
-      className="flex h-screen w-full justify-center overflow-hidden bg-[#F7F8F2] text-[#17221D]"
+      className="flex h-dvh w-full justify-center overflow-hidden bg-[#F7F8F2] text-[#17221D]"
       style={{ fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif' }}
     >
       <section className="flex h-full w-full max-w-97.5 flex-col overflow-hidden text-left">
         {/* ---------------- Cámara ---------------- */}
-        <div className="relative box-border w-full flex-1 min-h-0 overflow-hidden bg-black">
+        <div className="relative box-border h-[40%] w-full shrink-0 overflow-hidden bg-black">
           <video
             ref={videoRef}
             autoPlay
@@ -139,8 +142,12 @@ export default function ScanNewOrder() {
 
           {cameraError && (
             <div className="absolute inset-0 flex items-center justify-center bg-[linear-gradient(-151.107deg,#0B1A14_13.019%,#173E2C_86.981%)]">
-              <div className="px-6 text-center text-[10px] text-[#D7E4D5]">
-                No se pudo acceder a la cámara. Ingresa el código manualmente.
+              <div className="flex flex-col items-center gap-2 px-6 text-center text-[10px] text-[#D7E4D5]">
+                <Barcode aria-hidden="true" className="size-7 text-[#D9F36A]" />
+                <span>
+                  No se pudo acceder a la cámara. Usa el marco como referencia o
+                  ingresa el código manualmente.
+                </span>
               </div>
             </div>
           )}
@@ -156,18 +163,20 @@ export default function ScanNewOrder() {
             </button>
           </div>
 
-          <div className="absolute inset-0 z-2 flex items-center justify-center mb-4 pointer-events-none">
-            <div className="relative h-30 w-full max-w-64.5">
-              <div className="absolute -left-1.5 -top-1.5 h-[26.5px] w-[26.5px] border-solid border-[#D9F36A] [border-width:3px_0_0_3px]" />
-              <div className="absolute -right-1.5 -top-1.5 h-[26.5px] w-[26.5px] border-solid border-[#D9F36A] [border-width:3px_3px_0_0]" />
-              <div className="absolute -bottom-1.5 -left-1.5 h-[26.5px] w-[26.5px] border-solid border-[#D9F36A] [border-width:0_0_3px_3px]" />
-              <div className="absolute -bottom-1.5 -right-1.5 h-[26.5px] w-[26.5px] border-solid border-[#D9F36A] [border-width:0_3px_3px_0]" />
+          <div className="pointer-events-none absolute inset-0 z-2 flex items-center justify-center">
+            <div className="relative aspect-2/1 w-[min(260px,calc(100%-2rem))]">
+              <div className="absolute -left-1 -top-1 size-7 border-l-[3px] border-t-[3px] border-[#D9F36A]" />
+              <div className="absolute -right-1 -top-1 size-7 border-r-[3px] border-t-[3px] border-[#D9F36A]" />
+              <div className="absolute -bottom-1 -left-1 size-7 border-b-[3px] border-l-[3px] border-[#D9F36A]" />
+              <div className="absolute -bottom-1 -right-1 size-7 border-b-[3px] border-r-[3px] border-[#D9F36A]" />
             </div>
           </div>
 
           <div className="absolute inset-x-0 bottom-3 z-10 flex flex-col items-center gap-2 px-4">
             <div className="text-center text-[10px] text-[#D7E4D5]">
-              Apunta al código de barras dentro del marco
+              {cameraError
+                ? 'Coloca el código dentro del marco de referencia'
+                : 'Apunta al código de barras dentro del marco'}
             </div>
           </div>
         </div>
@@ -178,7 +187,7 @@ export default function ScanNewOrder() {
             e.preventDefault();
             handleRegister();
           }}
-          className={`box-border flex w-full h-[70%] shrink-0 flex-col items-start justify-start gap-3 bg-white px-4.5 pt-2.5 pb-5 [box-shadow:0px_-20px_60px_#13362633] overflow-y-auto ${hiddenScrollbar}`}
+          className={`box-border flex h-[60%] w-full shrink-0 flex-col items-start justify-start gap-3 bg-white px-4.5 pt-2.5 pb-5 [box-shadow:0px_-20px_60px_#13362633] overflow-y-auto ${hiddenScrollbar}`}
         >
           <div className="flex h-1 w-full justify-center">
             <div className="h-1 w-9 rounded-full bg-[#E4E9DF]" />
@@ -222,51 +231,56 @@ export default function ScanNewOrder() {
 
           {/* Registro manual */}
           <div className="w-full flex flex-col gap-1.5">
-            <div className="flex items-center gap-1.25">
-              <Plus className="w-2.75 h-2.75 text-[#176b4d]" />
-              <div className="text-[9.5px] text-[#17221D]">Registro manual</div>
-              <div className="text-[8.5px] text-[#65736B]">nombre y precio</div>
-            </div>
-
-            <div className="w-full flex gap-1.75 items-center">
-              {/* Nombre */}
-              <div className="relative flex-1">
+            {isManualEntryOpen && (
+              <div className="w-full flex gap-1.75 items-center">
                 <input
                   type="text"
                   value={manualName}
                   onChange={(e) => setManualName(e.target.value)}
                   placeholder="Producto sin código"
-                  className="w-full h-10 px-2.75 bg-white outline outline-[#E4E9DF] rounded-xl text-[10px] text-[#17221D] placeholder:text-[#65736B] focus:outline-[#176B4D]"
+                  aria-label="Nombre del producto manual"
+                  className="h-10 min-w-0 flex-1 rounded-xl bg-white px-2.75 text-[10px] text-[#17221D] outline outline-[#E4E9DF] placeholder:text-[#65736B] focus:outline-[#176B4D]"
                 />
+                <div className="relative w-24 shrink-0">
+                  <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-[#65736B]">
+                    S/
+                  </span>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={manualPrice}
+                    onChange={(e) =>
+                      setManualPrice(e.target.value.replace(/[^0-9.,]/g, ''))
+                    }
+                    placeholder="0.00"
+                    aria-label="Precio del producto manual"
+                    className="h-10 w-full rounded-xl bg-white pl-7 pr-2.5 text-[10px] text-[#17221D] outline outline-[#E4E9DF] placeholder:text-[#65736B] focus:outline-[#176B4D]"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={addManual}
+                  disabled={!manualName.trim() || !manualPrice}
+                  aria-label="Agregar producto manual"
+                  className="flex size-10 items-center justify-center rounded-[20px] bg-[#176B4D] disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <Plus className="size-4 text-white" />
+                </button>
               </div>
-
-              {/* Precio */}
-              <div className="w-24 shrink-0 relative">
-                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-[#65736B] pointer-events-none">
-                  S/
-                </span>
-                <input
-                  type="text"
-                  inputMode="decimal"
-                  value={manualPrice}
-                  onChange={(e) =>
-                    setManualPrice(e.target.value.replace(/[^0-9.,]/g, ''))
-                  }
-                  placeholder="0.00"
-                  className="w-full h-10 pl-7 pr-2.5 bg-white outline outline-[#E4E9DF] rounded-xl text-[10px] text-[#17221D] placeholder:text-[#65736B] focus:outline-[#176B4D]"
-                />
-              </div>
-
-              {/* Add */}
-              <button
-                type="button"
-                onClick={addManual}
-                disabled={!manualName.trim() || !manualPrice}
-                className="w-10 h-10 flex items-center justify-center bg-[#176B4D] rounded-[20px] disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                <Plus className="w-4 h-4 text-white" />
-              </button>
-            </div>
+            )}
+            <button
+              type="button"
+              onClick={() => setIsManualEntryOpen((open) => !open)}
+              aria-expanded={isManualEntryOpen}
+              className="flex w-fit items-center gap-1.25 border-b border-[#E4E9DF] text-xs text-[#17221D]"
+            >
+              <Plus className="size-3 text-[#176b4d]" />
+              <span>
+                {isManualEntryOpen
+                  ? 'Cerrar registro manual'
+                  : 'Agregar manual'}
+              </span>
+            </button>
           </div>
 
           {/* Método de pago */}

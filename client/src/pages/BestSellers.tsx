@@ -10,7 +10,7 @@ type Product = {
   revenue: string;
 };
 
-const ITEMS_PER_PAGE = 6;
+const ITEMS_PER_PAGE = 5;
 
 // Simulación: 24 productos (los 3 reales + relleno para que cuadre el "1 / 4")
 const ALL_PRODUCTS: Product[] = [
@@ -189,7 +189,7 @@ export default function BestSellers() {
         {/* Ranking — TODO dinámico y paginado */}
         <div
           data-pencil-name="Ranking"
-          className="box-border w-full h-132.5 shrink-0 flex flex-col gap-0 p-3.5 justify-start items-start bg-white [outline:1px_solid_#E4E9DF] [outline-offset:-0.5px] rounded-[20px]"
+          className="box-border w-full shrink-0 flex flex-col gap-0 p-3.5 justify-start items-start bg-white [outline:1px_solid_#E4E9DF] [outline-offset:-0.5px] rounded-[20px]"
         >
           {/* Header */}
           <div
