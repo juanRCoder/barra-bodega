@@ -3,8 +3,9 @@ import {
   createAccount,
   getAccountById,
   getAccounts,
+  registerAccountPayment,
 } from '@/services/accounts.service';
-import type { NewAccountForm } from '@/types/account.type';
+import type { NewAccountForm, NewAccountPayment } from '@/types/account.type';
 import { useAuthSession } from '@/hooks/useAuthSession';
 
 export const accountsQueryKeys = {
@@ -41,5 +42,25 @@ export function useCreateAccount() {
     mutationFn: (data: NewAccountForm) => createAccount(data),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: accountsQueryKeys.all }),
+  });
+}
+
+export function useRegisterAccountPayment(accountId: string) {
+  const queryClient = useQueryClient();
+  const { data: user } = useAuthSession();
+
+  return useMutation({
+    mutationFn: (data: NewAccountPayment) =>
+      registerAccountPayment(accountId, data),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: accountsQueryKeys.byAdmin(user?.id ?? ''),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ['orders', 'analytics'],
+        }),
+      ]);
+    },
   });
 }

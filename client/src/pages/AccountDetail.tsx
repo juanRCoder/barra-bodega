@@ -266,6 +266,7 @@ export default function AccountDetail() {
               className="box-border w-full h-fit shrink-0 flex flex-row gap-1.75 justify-start items-start flex-wrap"
             >
               <RegisterPayment
+                accountId={account.id}
                 accountName={account.name}
                 balance={account.debt}
               />

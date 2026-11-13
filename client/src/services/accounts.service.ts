@@ -4,6 +4,7 @@ import type {
   AccountSummary,
   AccountsResponse,
   NewAccountForm,
+  NewAccountPayment,
 } from '@/types/account.type';
 
 export class AccountsApiError extends Error {
@@ -54,4 +55,15 @@ export function createAccount(data: NewAccountForm) {
 
 export function getAccountById(id: string) {
   return accountsRequest<AccountDetail>(`/${encodeURIComponent(id)}`);
+}
+
+export function registerAccountPayment(id: string, data: NewAccountPayment) {
+  return accountsRequest<{ id: string; amount: number; createdAt: string }>(
+    `/${encodeURIComponent(id)}/payments`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }
+  );
 }

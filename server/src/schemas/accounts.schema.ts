@@ -9,3 +9,7 @@ export const createAccountSchema = z.object({
 });
 
 export const accountIdSchema = z.string().uuid();
+
+export const registerAccountPaymentSchema = z.object({
+  amount: z.number().finite().positive().max(99_999_999.99),
+});

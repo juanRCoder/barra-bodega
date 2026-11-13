@@ -7,6 +7,7 @@ const accountsRouter = Router();
 accountsRouter.use(requireAdmin);
 accountsRouter.get('/', accountsController.getAll);
 accountsRouter.post('/', accountsController.create);
+accountsRouter.post('/:id/payments', accountsController.registerPayment);
 accountsRouter.get('/:id', accountsController.getById);
 
 export default accountsRouter;

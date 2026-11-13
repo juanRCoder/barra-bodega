@@ -4,7 +4,38 @@ import { prisma } from '@/lib/prisma.js';
 import {
   createOrderSchema,
   orderBarcodeSchema,
+  salesPeriodSchema,
 } from '@/schemas/orders.schema.js';
+
+type SalesPeriod = ReturnType<typeof salesPeriodSchema.parse>;
+
+function getPeriodStart(period: SalesPeriod, now: Date) {
+  const dateParts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Lima',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+  }).formatToParts(now);
+  const year = Number(dateParts.find((part) => part.type === 'year')?.value);
+  const month = Number(dateParts.find((part) => part.type === 'month')?.value);
+  const day = Number(dateParts.find((part) => part.type === 'day')?.value);
+  const periodStart = new Date(
+    Date.UTC(
+      year,
+      month - 1,
+      period === 'month' ? 1 : day - (period === 'week' ? 6 : 0)
+    )
+  );
+
+  return new Date(
+    Date.UTC(
+      periodStart.getUTCFullYear(),
+      periodStart.getUTCMonth(),
+      periodStart.getUTCDate(),
+      5
+    )
+  );
+}
 
 function orderData(order: {
   id: string;
@@ -39,6 +70,111 @@ function orderData(order: {
 }
 
 export class OrdersService {
+  async getAnalytics(adminId: string, input: unknown) {
+    const period = salesPeriodSchema.parse(input);
+    const now = new Date();
+    const createdAt = { gte: getPeriodStart(period, now), lte: now };
+    const [orders, accountPayments] = await Promise.all([
+      prisma.order.findMany({
+        where: {
+          admin_id: adminId,
+          status: { not: 'CANCELLED' },
+          created_at: createdAt,
+        },
+        select: {
+          account_id: true,
+          status: true,
+          total: true,
+          productsOrder: {
+            select: {
+              quantity: true,
+              manual_name: true,
+              subtotal: true,
+              productAdmin: {
+                select: {
+                  product: { select: { id: true, name: true } },
+                },
+              },
+            },
+          },
+        },
+      }),
+      prisma.accountPayment.aggregate({
+        where: {
+          created_at: createdAt,
+          account: { is: { admin_id: adminId } },
+        },
+        _sum: { amount: true },
+      }),
+    ]);
+
+    const products = new Map<
+      string,
+      {
+        id: string;
+        name: string;
+        unitsSold: number;
+        salesAmount: Prisma.Decimal;
+      }
+    >();
+    let unitsSold = 0;
+    let salesAmount = new Prisma.Decimal(0);
+    let collectedAmount = accountPayments._sum.amount ?? new Prisma.Decimal(0);
+
+    for (const order of orders) {
+      if (order.account_id === null && order.status === 'PAID') {
+        collectedAmount = collectedAmount.plus(order.total);
+      }
+
+      for (const item of order.productsOrder) {
+        const product = item.productAdmin?.product;
+        const name = item.manual_name ?? product?.name ?? 'Producto';
+        const key = product
+          ? `inventory:${product.id}`
+          : `manual:${name.trim().toLocaleLowerCase('es-PE')}`;
+        const existing = products.get(key);
+
+        unitsSold += item.quantity;
+        salesAmount = salesAmount.plus(item.subtotal);
+
+        if (existing) {
+          existing.unitsSold += item.quantity;
+          existing.salesAmount = existing.salesAmount.plus(item.subtotal);
+        } else {
+          products.set(key, {
+            id: key,
+            name,
+            unitsSold: item.quantity,
+            salesAmount: item.subtotal,
+          });
+        }
+      }
+    }
+
+    const topProducts = [...products.values()]
+      .sort(
+        (left, right) =>
+          right.unitsSold - left.unitsSold ||
+          right.salesAmount.comparedTo(left.salesAmount) ||
+          left.name.localeCompare(right.name, 'es')
+      )
+      .map((product) => ({
+        id: product.id,
+        name: product.name,
+        unitsSold: product.unitsSold,
+        salesAmount: product.salesAmount.toNumber(),
+      }));
+
+    return {
+      period,
+      ordersCount: orders.length,
+      unitsSold,
+      salesAmount: salesAmount.toNumber(),
+      collectedAmount: collectedAmount.toNumber(),
+      topProducts,
+    };
+  }
+
   async getProductByCode(adminId: string, input: unknown) {
     const code = orderBarcodeSchema.parse(input);
     const product = await prisma.productsAdmin.findFirst({

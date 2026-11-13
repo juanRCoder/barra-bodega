@@ -1,5 +1,10 @@
 import { apiFetch } from '@/services/auth.service';
-import type { NewOrder, OrderData } from '@/types/order.type';
+import type {
+  NewOrder,
+  OrderData,
+  SalesAnalytics,
+  SalesPeriod,
+} from '@/types/order.type';
 import type { ProductData } from '@/types/inventory.type';
 
 export class OrdersApiError extends Error {
@@ -45,4 +50,10 @@ export function createOrder(data: NewOrder) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
+}
+
+export function getSalesAnalytics(period: SalesPeriod) {
+  return ordersRequest<SalesAnalytics>(
+    `/analytics?period=${encodeURIComponent(period)}`
+  );
 }

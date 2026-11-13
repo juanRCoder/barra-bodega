@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma.js';
 import {
   accountIdSchema,
   createAccountSchema,
+  registerAccountPaymentSchema,
 } from '@/schemas/accounts.schema.js';
 
 function isUniqueConstraintError(error: unknown) {
@@ -135,6 +136,47 @@ export class AccountsService {
       ...accountSummary(account),
       movements,
     };
+  }
+
+  async registerPayment(adminId: string, id: unknown, input: unknown) {
+    const accountId = accountIdSchema.parse(id);
+    const data = registerAccountPaymentSchema.parse(input);
+    const amount = new Prisma.Decimal(data.amount);
+
+    if (amount.decimalPlaces() > 2) {
+      throw new AppError(400, 'El pago solo puede tener hasta dos decimales');
+    }
+
+    return prisma.$transaction(async (transaction) => {
+      const account = await transaction.account.findFirst({
+        where: { id: accountId, admin_id: adminId },
+        select: { id: true },
+      });
+
+      if (!account) {
+        throw new AppError(404, 'Cuenta no encontrada');
+      }
+
+      const update = await transaction.account.updateMany({
+        where: { id: accountId, admin_id: adminId, debt: { gte: amount } },
+        data: { debt: { decrement: amount } },
+      });
+
+      if (update.count === 0) {
+        throw new AppError(400, 'El pago supera el saldo pendiente');
+      }
+
+      const payment = await transaction.accountPayment.create({
+        data: { account_id: accountId, amount },
+        select: { id: true, amount: true, created_at: true },
+      });
+
+      return {
+        id: payment.id,
+        amount: payment.amount.toNumber(),
+        createdAt: payment.created_at.toISOString(),
+      };
+    });
   }
 }
 

@@ -1,96 +1,33 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-type Product = {
-  id: string;
-  name: string;
-  category: string;
-  quantity: string;
-  revenue: string;
-};
+import { useSalesAnalytics } from '@/hooks/useOrders';
+import type { SalesPeriod } from '@/types/order.type';
+import { OrdersApiError } from '@/services/orders.service';
 
 const ITEMS_PER_PAGE = 5;
-
-// Simulación: 24 productos (los 3 reales + relleno para que cuadre el "1 / 4")
-const ALL_PRODUCTS: Product[] = [
-  {
-    id: 'p1',
-    name: 'Coca Cola 500 ml',
-    category: 'Bebidas',
-    quantity: '48 unid.',
-    revenue: 'S/ 336.00',
-  },
-  {
-    id: 'p2',
-    name: 'Queso fresco',
-    category: 'Lácteos',
-    quantity: '18 kg',
-    revenue: 'S/ 321.30',
-  },
-  {
-    id: 'p3',
-    name: 'Pan francés',
-    category: 'Panadería',
-    quantity: '32 unid.',
-    revenue: 'S/ 144.00',
-  },
-  {
-    id: 'p4',
-    name: 'Pan francés',
-    category: 'Panadería',
-    quantity: '32 unid.',
-    revenue: 'S/ 144.00',
-  },
-  {
-    id: 'p5',
-    name: 'Pan francés',
-    category: 'Panadería',
-    quantity: '32 unid.',
-    revenue: 'S/ 144.00',
-  },
-  {
-    id: 'p6',
-    name: 'Pan francés',
-    category: 'Panadería',
-    quantity: '32 unid.',
-    revenue: 'S/ 144.00',
-  },
-
-  {
-    id: 'p7',
-    name: 'Pan francés',
-    category: 'Panadería',
-    quantity: '32 unid.',
-    revenue: 'S/ 144.00',
-  },
-  {
-    id: 'p8',
-    name: 'Pan francés',
-    category: 'Panadería',
-    quantity: '32 unid.',
-    revenue: 'S/ 144.00',
-  },
-  // ...resto de productos (p4..p24) — reemplaza por datos reales
+const RANGES: { value: SalesPeriod; label: string }[] = [
+  { value: 'today', label: 'Hoy' },
+  { value: 'week', label: '7 días' },
+  { value: 'month', label: 'Mes' },
 ];
 
 export default function BestSellers() {
   const navigate = useNavigate();
-  const [activeRange, setActiveRange] = useState<string>('Hoy');
+  const [activeRange, setActiveRange] = useState<SalesPeriod>('today');
   const [page, setPage] = useState(1);
-
-  const ranges = ['Hoy', 'Semana', 'Mes'] as const;
-
-  const totalProducts = ALL_PRODUCTS.length;
+  const analyticsQuery = useSalesAnalytics(activeRange);
+  const analytics = analyticsQuery.data;
+  const products = analytics?.topProducts ?? [];
+  const totalProducts = products.length;
   const totalPages = Math.max(1, Math.ceil(totalProducts / ITEMS_PER_PAGE));
 
-  const visibleProducts = useMemo(
-    () =>
-      ALL_PRODUCTS.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE),
-    [page]
+  const visibleProducts = products.slice(
+    (page - 1) * ITEMS_PER_PAGE,
+    page * ITEMS_PER_PAGE
   );
 
-  const handleRangeChange = (range: string) => {
+  const handleRangeChange = (range: SalesPeriod) => {
     setActiveRange(range);
     setPage(1);
   };
@@ -122,7 +59,7 @@ export default function BestSellers() {
               Más vendidos
             </div>
             <div className="text-[9.5px]/[normal] box-border text-[#65736B] font-[Inter,system-ui,sans-serif] font-normal text-left whitespace-nowrap">
-              Semana 10 – 16 de marzo
+              {RANGES.find((range) => range.value === activeRange)?.label}
             </div>
           </div>
         </div>
@@ -132,13 +69,13 @@ export default function BestSellers() {
           data-pencil-name="Range"
           className="box-border flex h-9.5 w-full shrink-0 items-center justify-start gap-0.75 rounded-full border border-[#E4E9DF] bg-white p-1"
         >
-          {ranges.map((range) => {
-            const isActive = activeRange === range;
+          {RANGES.map((range) => {
+            const isActive = activeRange === range.value;
             return (
               <button
-                key={range}
+                key={range.value}
                 type="button"
-                onClick={() => handleRangeChange(range)}
+                onClick={() => handleRangeChange(range.value)}
                 className={`box-border flex h-7.5 flex-1 items-center justify-center rounded-full transition-colors duration-200 cursor-pointer ${
                   isActive
                     ? 'bg-[#176B4D]'
@@ -152,7 +89,7 @@ export default function BestSellers() {
                       : 'font-normal text-[#65736B]'
                   }`}
                 >
-                  {range}
+                  {range.label}
                 </div>
               </button>
             );
@@ -170,23 +107,30 @@ export default function BestSellers() {
             </div>
             <div className="box-border w-full h-fit shrink-0 flex flex-row gap-1.5 justify-start items-end">
               <div className="text-[14px]/[normal] box-border text-[#17221D] font-[Inter,system-ui,sans-serif] font-normal text-left whitespace-nowrap">
-                128
+                {analyticsQuery.isPending
+                  ? '…'
+                  : analyticsQuery.isError
+                    ? '—'
+                    : (analytics?.unitsSold ?? 0)}
               </div>
             </div>
           </div>
           <div className="box-border flex-1 h-full flex flex-col gap-0 px-3 py-2.5 justify-between items-start bg-white [outline:1px_solid_#E4E9DF] [outline-offset:-0.5px] rounded-2xl">
             <div className="text-[8.5px]/[normal] box-border text-[#65736B] font-[Inter,system-ui,sans-serif] font-semibold text-left whitespace-nowrap">
-              Ingresos
+              Recaudado
             </div>
             <div className="box-border w-full h-fit shrink-0 flex flex-row gap-1.5 justify-start items-end">
               <div className="text-[14px]/[normal] box-border text-[#17221D] font-[Inter,system-ui,sans-serif] font-normal text-left whitespace-nowrap">
-                S/ 966.80
+                {analyticsQuery.isPending
+                  ? '…'
+                  : analyticsQuery.isError
+                    ? '—'
+                    : `S/ ${(analytics?.collectedAmount ?? 0).toFixed(2)}`}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Ranking — TODO dinámico y paginado */}
         <div
           data-pencil-name="Ranking"
           className="box-border w-full shrink-0 flex flex-col gap-0 p-3.5 justify-start items-start bg-white [outline:1px_solid_#E4E9DF] [outline-offset:-0.5px] rounded-[20px]"
@@ -204,7 +148,9 @@ export default function BestSellers() {
               className="box-border w-fit shrink-0 h-fit flex flex-row gap-0 px-2 py-0.75 justify-start items-center bg-[#F7F8F2] [outline:1px_solid_#E4E9DF] [outline-offset:-0.5px] rounded-full"
             >
               <div className="text-[8.5px]/[normal] box-border text-[#65736B] font-[Inter,system-ui,sans-serif] font-bold text-left whitespace-nowrap">
-                {visibleProducts.length} de {totalProducts}
+                {analyticsQuery.isPending
+                  ? 'Cargando'
+                  : `${visibleProducts.length} de ${totalProducts}`}
               </div>
             </div>
           </div>
@@ -236,18 +182,44 @@ export default function BestSellers() {
                     {product.name}
                   </div>
                   <div className="text-[8.5px]/[normal] box-border text-[#65736B] font-[Inter,system-ui,sans-serif] font-normal text-left whitespace-nowrap">
-                    {product.category} · {product.quantity}
+                    {product.unitsSold} unid.
                   </div>
                 </div>
 
                 <div className="box-border w-fit shrink-0 h-fit flex flex-col gap-0.5 justify-start items-end">
                   <div className="text-[10.5px]/[normal] box-border text-[#17221D] font-[Inter,system-ui,sans-serif] font-normal text-left whitespace-nowrap">
-                    {product.revenue}
+                    S/ {product.salesAmount.toFixed(2)}
                   </div>
                 </div>
               </div>
             );
           })}
+
+          {analyticsQuery.isError && (
+            <p
+              className="w-full py-3 text-center text-xs text-[#B5392B]"
+              role="alert"
+            >
+              {analyticsQuery.error instanceof OrdersApiError
+                ? analyticsQuery.error.message
+                : 'No se pudo cargar el ranking.'}
+            </p>
+          )}
+          {analyticsQuery.isPending && (
+            <p
+              className="w-full py-3 text-center text-xs text-[#65736B]"
+              role="status"
+            >
+              Cargando ranking…
+            </p>
+          )}
+          {!analyticsQuery.isPending &&
+            !analyticsQuery.isError &&
+            totalProducts === 0 && (
+              <p className="w-full py-3 text-center text-xs text-[#65736B]">
+                No hay productos vendidos en este periodo.
+              </p>
+            )}
 
           {/* Pager */}
           <div

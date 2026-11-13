@@ -29,3 +29,5 @@ export const createOrderSchema = z.object({
 });
 
 export const orderBarcodeSchema = z.string().trim().min(1).max(100);
+
+export const salesPeriodSchema = z.enum(['today', 'week', 'month']);

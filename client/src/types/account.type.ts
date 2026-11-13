@@ -34,3 +34,7 @@ export type NewAccountForm = {
   name: string;
   phone: string;
 };
+
+export type NewAccountPayment = {
+  amount: number;
+};

@@ -2,9 +2,13 @@ import { Sidebar } from '@/components/Sidebar';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuthSession } from '@/hooks/useAuthSession';
+import { useSalesAnalytics } from '@/hooks/useOrders';
+import type { SalesPeriod } from '@/types/order.type';
 import { Button } from '@/components/ui/button';
+import { OrdersApiError } from '@/services/orders.service';
 
 const currentDate = new Intl.DateTimeFormat('es-PE', {
+  timeZone: 'America/Lima',
   weekday: 'long',
   day: 'numeric',
   month: 'long',
@@ -24,9 +28,14 @@ const currentDate = new Intl.DateTimeFormat('es-PE', {
 
 export default function Dashboard() {
   const { data: user } = useAuthSession();
-  const ranges = ['Hoy', 'Semana', 'Mes'] as const;
-  type Range = (typeof ranges)[number];
-  const [activeRange, setActiveRange] = useState<Range>('Hoy');
+  const ranges: { value: SalesPeriod; label: string }[] = [
+    { value: 'today', label: 'Hoy' },
+    { value: 'week', label: '7 días' },
+    { value: 'month', label: 'Mes' },
+  ];
+  const [activeRange, setActiveRange] = useState<SalesPeriod>('today');
+  const analyticsQuery = useSalesAnalytics(activeRange);
+  const analytics = analyticsQuery.data;
 
   const initials = user?.name
     .split(' ')
@@ -98,14 +107,14 @@ export default function Dashboard() {
           className="box-border flex h-9.5 w-full shrink-0 items-center justify-start gap-0.75 rounded-full border border-[#E4E9DF] bg-white p-1"
         >
           {ranges.map((range) => {
-            const isActive = activeRange === range;
+            const isActive = activeRange === range.value;
 
             return (
               <button
-                key={range}
+                key={range.value}
                 type="button"
                 aria-pressed={isActive}
-                onClick={() => setActiveRange(range)}
+                onClick={() => setActiveRange(range.value)}
                 className={`box-border flex h-7.5 flex-1 items-center justify-center rounded-full transition-colors duration-200 cursor-pointer ${
                   isActive
                     ? 'bg-[#176B4D]'
@@ -119,7 +128,7 @@ export default function Dashboard() {
                       : 'font-normal text-[#65736B]'
                   }`}
                 >
-                  {range}
+                  {range.label}
                 </div>
               </button>
             );
@@ -137,7 +146,7 @@ export default function Dashboard() {
               data-pencil-name="Label"
               className="whitespace-nowrap text-left text-[11px]/[normal] font-semibold text-[#65736B]"
             >
-              Dinero realizado
+              Dinero recaudado
             </div>
           </div>
           <div
@@ -148,7 +157,11 @@ export default function Dashboard() {
               data-pencil-name="Value"
               className="whitespace-nowrap text-left text-[24px]/[normal] font-normal tracking-[-1.4px] text-[#17221D]"
             >
-              S/ 0.00
+              {analyticsQuery.isPending
+                ? '…'
+                : analyticsQuery.isError
+                  ? '—'
+                  : `S/ ${(analytics?.collectedAmount ?? 0).toFixed(2)}`}
             </div>
           </div>
         </div>
@@ -175,7 +188,11 @@ export default function Dashboard() {
                 data-pencil-name="Value"
                 className="whitespace-nowrap text-left text-[32px]/[normal] font-normal tracking-[-0.8px] text-[#17221D]"
               >
-                0
+                {analyticsQuery.isPending
+                  ? '…'
+                  : analyticsQuery.isError
+                    ? '—'
+                    : (analytics?.ordersCount ?? 0)}
               </div>
             </div>
           </div>
@@ -197,7 +214,11 @@ export default function Dashboard() {
                 data-pencil-name="Name"
                 className="text-left text-[11px]/[normal] font-normal tracking-[-0.2px] text-[#65736B]"
               >
-                No hay datos
+                {analyticsQuery.isPending
+                  ? '…'
+                  : analyticsQuery.isError
+                    ? '—'
+                    : (analytics?.topProducts[0]?.name ?? 'No hay datos')}
               </div>
             </div>
           </div>
@@ -233,9 +254,17 @@ export default function Dashboard() {
           </div>
         </section> */}
 
+        {analyticsQuery.isError && (
+          <p className="text-xs text-[#B5392B]" role="alert">
+            {analyticsQuery.error instanceof OrdersApiError
+              ? analyticsQuery.error.message
+              : 'No se pudieron cargar las ventas.'}
+          </p>
+        )}
+
         <div
           data-pencil-name="Top vendidos"
-          className="box-border flex h-49.75 w-full shrink-0 flex-col items-start justify-start rounded-[20px] border border-[#E4E9DF] bg-white p-3.5"
+          className="box-border min-h-49.75 w-full shrink-0 flex flex-col items-start justify-start rounded-[20px] border border-[#E4E9DF] bg-white p-3.5"
         >
           <div
             data-pencil-name="Header"
@@ -254,9 +283,36 @@ export default function Dashboard() {
               <Link to="/best-sellers">Ver todos</Link>
             </Button>
           </div>
-          <div className="flex w-full flex-1 items-center justify-center text-[11px] text-[#65736B]">
-            No hay datos de ventas todavía
-          </div>
+          {analyticsQuery.isPending ? (
+            <div className="flex w-full flex-1 items-center justify-center text-[11px] text-[#65736B]">
+              Cargando ventas…
+            </div>
+          ) : analytics?.topProducts.length ? (
+            <div className="w-full">
+              {analytics.topProducts.slice(0, 3).map((product, index) => (
+                <div
+                  key={product.id}
+                  className="flex min-h-8.5 w-full items-center gap-2 border-t border-[#E4E9DF] text-[10px]"
+                >
+                  <span className="w-5 font-bold text-[#176B4D]">
+                    {index + 1}.
+                  </span>
+                  <span className="min-w-0 flex-1 truncate">
+                    {product.name}
+                  </span>
+                  <span className="shrink-0 text-[#65736B]">
+                    {product.unitsSold} unid.
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex w-full flex-1 items-center justify-center text-[11px] text-[#65736B]">
+              {analyticsQuery.isError
+                ? 'No se pudieron cargar los datos'
+                : 'No hay datos de ventas todavía'}
+            </div>
+          )}
         </div>
       </section>
     </div>

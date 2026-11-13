@@ -19,6 +19,15 @@ export class AccountsController {
     );
     res.json({ data: account });
   };
+
+  registerPayment = async (req: Request, res: Response) => {
+    const payment = await accountsService.registerPayment(
+      res.locals.adminId,
+      req.params.id,
+      req.body
+    );
+    res.status(201).json({ data: payment });
+  };
 }
 
 export const accountsController = new AccountsController();

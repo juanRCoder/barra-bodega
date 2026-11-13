@@ -1,5 +1,7 @@
 import { Banknote, Check, CreditCard, X } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
+import { useRegisterAccountPayment } from '@/hooks/useAccounts';
+import { AccountsApiError } from '@/services/accounts.service';
 
 type PaymentMethod = 'cash' | 'yape';
 
@@ -15,17 +17,20 @@ const PAYMENT_METHODS: {
 const formatCurrency = (n: number) => `S/ ${n.toFixed(2)}`;
 
 type RegisterPaymentProps = {
+  accountId: string;
   accountName: string;
   balance: number;
 };
 
 export const RegisterPayment = ({
+  accountId,
   accountName,
   balance,
 }: RegisterPaymentProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [amount, setAmount] = useState<string>('');
   const [method, setMethod] = useState<PaymentMethod>('cash');
+  const payment = useRegisterAccountPayment(accountId);
 
   const close = () => setIsOpen(false);
 
@@ -35,14 +40,17 @@ export const RegisterPayment = ({
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const payload = {
-      amount: numericAmount,
-      method,
-      currency: 'PEN',
-    };
-    console.log(payload);
-    // TODO: llamar API
-    close();
+    if (numericAmount <= 0 || numericAmount > balance) return;
+
+    payment.mutate(
+      { amount: numericAmount },
+      {
+        onSuccess: () => {
+          close();
+          setAmount('');
+        },
+      }
+    );
   };
 
   return (
@@ -242,17 +250,29 @@ export const RegisterPayment = ({
             {/* Confirm */}
             <button
               type="submit"
+              disabled={
+                payment.isPending ||
+                numericAmount <= 0 ||
+                numericAmount > balance
+              }
               data-pencil-name="Confirm"
-              className="box-border w-full h-12 shrink-0 [box-shadow:0px_10px_24px_#176B4D33] flex flex-row gap-1.75 justify-center items-center bg-[#176B4D] rounded-[999px] cursor-pointer hover:bg-[#104B37] transition-colors"
+              className="box-border w-full h-12 shrink-0 [box-shadow:0px_10px_24px_#176B4D33] flex flex-row gap-1.75 justify-center items-center bg-[#176B4D] rounded-[999px] cursor-pointer hover:bg-[#104B37] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
             >
               <Check className="box-border w-3.75 shrink-0 h-3.75 text-[#FFFFFF]" />
               <span
                 data-pencil-name="Label"
                 className="text-[12px]/[normal] box-border text-[#FFFFFF] font-[Inter,system-ui,sans-serif] font-bold text-left whitespace-nowrap"
               >
-                {confirmLabel}
+                {payment.isPending ? 'Guardando pago…' : confirmLabel}
               </span>
             </button>
+            {payment.error && (
+              <p className="text-center text-xs text-[#B5392B]" role="alert">
+                {payment.error instanceof AccountsApiError
+                  ? payment.error.message
+                  : 'No se pudo registrar el pago.'}
+              </p>
+            )}
           </form>
         </div>
       </div>
