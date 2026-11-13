@@ -40,7 +40,7 @@ export default function Register() {
 
   return (
     <div
-      className="flex min-h-screen w-full justify-center bg-[#F7F8F2] text-[#17221D]"
+      className="flex w-full justify-center text-[#17221D]"
       style={{ fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif' }}
     >
       <section className="flex w-full max-w-97.5 flex-col gap-3 p-3 text-left">

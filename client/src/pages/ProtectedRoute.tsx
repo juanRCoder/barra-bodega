@@ -8,7 +8,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (isPending) {
     return (
       <div
-        className="flex min-h-screen items-center justify-center bg-[#F7F8F2] text-sm text-[#65736B]"
+        className="flex min-h-screen items-center justify-center text-sm text-[#65736B]"
         role="status"
       >
         Verificando sesión...
@@ -18,7 +18,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (isError) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-[#F7F8F2] text-sm text-[#65736B]">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-3 text-sm text-[#65736B]">
         <p role="alert">No se pudo verificar la sesión. Revisa tu conexión.</p>
         <button
           type="button"
