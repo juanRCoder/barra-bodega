@@ -28,6 +28,28 @@ const hiddenScrollbar =
   '[scrollbar-width:none] [-ms-overflow-style:none] ' +
   '[&::-webkit-scrollbar]:hidden';
 
+async function enableContinuousFocus(container: HTMLElement | null) {
+  const videoEl = container?.querySelector('video') as HTMLVideoElement | null;
+  const stream = videoEl?.srcObject as MediaStream | null;
+  const track = stream?.getVideoTracks()[0];
+  if (!track) return;
+
+  const capabilities = track.getCapabilities() as MediaTrackCapabilities & {
+    focusMode?: string[];
+  };
+
+  // Solo intentamos si el hardware lo soporta
+  if (!capabilities.focusMode?.includes('continuous')) return;
+
+  try {
+    await track.applyConstraints({
+      advanced: [{ focusMode: 'continuous' } as MediaTrackConstraintSet],
+    });
+  } catch (error) {
+    console.warn('No se pudo aplicar autoenfoque continuo', error);
+  }
+}
+
 export default function ScanNewOrder() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -147,6 +169,15 @@ export default function ScanNewOrder() {
         },
         () => {}
       )
+      .then(async () => {
+        if (cancelled) return;
+        try {
+          await enableContinuousFocus(readerRef.current);
+        } catch (focusErr) {
+          console.warn('Enfoque continuo no aplicado', focusErr);
+          // no marcamos cameraError
+        }
+      })
       .catch((error: unknown) => {
         if (!cancelled) {
           console.error('Camera start error', error);
@@ -287,7 +318,7 @@ export default function ScanNewOrder() {
             <button
               type="button"
               aria-label="Volver"
-              onClick={() => navigate('/inventory')}
+              onClick={() => navigate('/')}
               className="size-8.5 shrink-0 cursor-pointer rounded-[17px] bg-[#FFFFFF14] flex items-center justify-center"
             >
               <ArrowLeft className="size-4 text-white" />

@@ -36,6 +36,12 @@ export default function Dashboard() {
   const [activeRange, setActiveRange] = useState<SalesPeriod>('today');
   const analyticsQuery = useSalesAnalytics(activeRange);
   const analytics = analyticsQuery.data;
+  const starProduct = analytics?.topProducts[0];
+  const periodDescription = {
+    today: 'de hoy',
+    week: 'de los últimos 7 días',
+    month: 'del mes',
+  }[activeRange];
 
   const initials = user?.name
     .split(' ')
@@ -202,24 +208,44 @@ export default function Dashboard() {
           >
             <div
               data-pencil-name="Label"
-              className="pb-1 text-left text-[10.5px]/[normal] font-normal text-[#65736B]"
+              className="text-left text-[10.5px]/[normal] font-normal text-[#65736B]"
             >
-              Producto estrella
+              Producto estrella {periodDescription}
             </div>
             <div
               data-pencil-name="Name Row"
-              className="box-border flex h-fit w-full shrink-0 items-center justify-start gap-1.25"
+              className="box-border flex h-fit w-full shrink-0 items-center justify-start gap-1.25 pt-1.5"
             >
               <div
                 data-pencil-name="Name"
-                className="text-left text-[11px]/[normal] font-normal tracking-[-0.2px] text-[#65736B]"
+                className="min-w-0 flex-1 truncate text-left text-[13px]/[normal] font-medium tracking-[-0.2px] text-[#17221D]"
               >
                 {analyticsQuery.isPending
-                  ? '…'
+                  ? 'Cargando…'
                   : analyticsQuery.isError
                     ? '—'
-                    : (analytics?.topProducts[0]?.name ?? 'No hay datos')}
+                    : (starProduct?.name ?? 'No hay datos')}
               </div>
+              {starProduct && !analyticsQuery.isError && (
+                <span
+                  aria-label={`${starProduct.unitsSold} unidades vendidas`}
+                  className="shrink-0 rounded-full bg-[#D9F36A] px-2.5 py-0.5 text-[11px] font-semibold text-[#104B37]"
+                >
+                  {starProduct.unitsSold}
+                </span>
+              )}
+            </div>
+            <div
+              data-pencil-name="Product Revenue"
+              className="pt-1.5 text-left text-[10px]/[normal] text-[#65736B]"
+            >
+              {analyticsQuery.isPending
+                ? 'Cargando ingresos…'
+                : analyticsQuery.isError
+                  ? 'No disponible'
+                  : starProduct
+                    ? `S/ ${starProduct.salesAmount.toFixed(2)} en ingresos`
+                    : 'Sin ingresos en este periodo'}
             </div>
           </div>
         </div>
