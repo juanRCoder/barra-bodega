@@ -69,7 +69,13 @@ export default function Accounts() {
               </div>
             </div>
             <div className="box-border w-full h-fit shrink-0 flex flex-row gap-0 justify-between items-end flex-wrap">
-              <div className="text-[27px]/[normal] box-border text-[#B5392B] font-[Inter,system-ui,sans-serif] font-normal tracking-[-1.2px] text-left whitespace-nowrap">
+              <div
+                className={`text-[27px]/[normal] box-border font-[Inter,system-ui,sans-serif] font-normal tracking-[-1.2px] text-left whitespace-nowrap ${
+                  (summary?.totalDebt ?? 0) === 0
+                    ? 'text-[#176B4D]'
+                    : 'text-[#B5392B]'
+                }`}
+              >
                 {formatCurrency(summary?.totalDebt ?? 0)}
               </div>
               <div className="text-[9px]/[normal] box-border text-[#65736B] font-[Inter,system-ui,sans-serif] font-normal text-left whitespace-nowrap">

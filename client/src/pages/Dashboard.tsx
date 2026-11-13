@@ -37,11 +37,6 @@ export default function Dashboard() {
   const analyticsQuery = useSalesAnalytics(activeRange);
   const analytics = analyticsQuery.data;
   const starProduct = analytics?.topProducts[0];
-  const periodDescription = {
-    today: 'de hoy',
-    week: 'de los últimos 7 días',
-    month: 'del mes',
-  }[activeRange];
 
   const initials = user?.name
     .split(' ')
@@ -210,7 +205,7 @@ export default function Dashboard() {
               data-pencil-name="Label"
               className="text-left text-[10.5px]/[normal] font-normal text-[#65736B]"
             >
-              Producto estrella {periodDescription}
+              Producto estrella
             </div>
             <div
               data-pencil-name="Name Row"
@@ -218,7 +213,7 @@ export default function Dashboard() {
             >
               <div
                 data-pencil-name="Name"
-                className="min-w-0 flex-1 truncate text-left text-[13px]/[normal] font-medium tracking-[-0.2px] text-[#17221D]"
+                className="min-w-0 flex-1 whitespace-normal wrap-break-words text-left text-[13px]/[normal] font-medium tracking-[-0.2px] text-[#17221D]"
               >
                 {analyticsQuery.isPending
                   ? 'Cargando…'
