@@ -1,11 +1,12 @@
 # AGENTS.md
 
-pnpm workspace with three packages: `client` (Vite + React 19), `server` (Express 5 + Prisma 7), and `packages/types` (shared TS types). `README.md` is corrupted/empty - use this file and the package manifests.
+pnpm workspace with four packages: `client` (Vite + React 19), `server` (Express 5 + Prisma 7), `mobile` (Expo + React Native), and `packages/types` (shared TS types). `README.md` is corrupted/empty - use this file and the package manifests.
 
 ## Commands (from repo root)
 
 - `pnpm install`
-- `pnpm dev` - both apps in parallel; `pnpm dev:client` / `pnpm dev:server` for one.
+- `pnpm dev` - web client and server in parallel; `pnpm dev:client` / `pnpm dev:server` for one.
+- `pnpm dev:mobile` - Expo development server (SDK 58 requires Node.js 22.13+).
 - `pnpm format` / `pnpm format:check` - Prettier (single quotes, semicolons, 80 cols). Husky's pre-commit runs `format:check`, so unformatted commits fail.
 - `pnpm --filter client lint` - oxlint (the only lint setup; one known fast-refresh warning in `ui/button.tsx`).
 - `pnpm --filter client build` - `tsc -b && vite build`.
