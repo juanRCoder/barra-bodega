@@ -9,9 +9,12 @@ import { prisma } from '@/lib/prisma.js';
 
 const app = express();
 
-const allowedOrigins = process.env.CLIENT_ORIGIN
-  ? process.env.CLIENT_ORIGIN.split(',').map((origin) => origin.trim())
-  : ['http://localhost:5173'];
+const allowedOrigins = [
+  ...(process.env.CLIENT_ORIGIN
+    ? process.env.CLIENT_ORIGIN.split(',').map((origin) => origin.trim())
+    : ['http://localhost:5173']),
+  'http://localhost:8081',
+];
 
 app.use(
   cors({

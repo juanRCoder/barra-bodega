@@ -35,7 +35,6 @@ export default function Login() {
       style={{ fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif' }}
     >
       <section className="flex w-full max-w-97.5 flex-col gap-3 p-3 text-left">
-        {/* Top Bar */}
         <div
           data-pencil-name="Top Bar"
           className="box-border flex h-8 w-full shrink-0 items-center justify-between"
@@ -52,8 +51,6 @@ export default function Login() {
             </div>
           </div>
         </div>
-
-        {/* Hero */}
         <div
           data-pencil-name="Hero"
           className="box-border flex h-fit w-full shrink-0 flex-col items-start justify-start gap-1.75 px-0 py-4"
@@ -71,8 +68,6 @@ export default function Login() {
             Entra para ver cómo va tu bodega hoy.
           </p>
         </div>
-
-        {/* Form Card */}
         <form
           data-pencil-name="Form Card"
           onSubmit={handleSubmit((values) =>
@@ -80,7 +75,6 @@ export default function Login() {
           )}
           className="box-border flex h-fit w-full shrink-0 flex-col items-start justify-start gap-3.25 rounded-[20px] bg-white p-4"
         >
-          {/* Email */}
           <div
             data-pencil-name="Field Correo"
             className="box-border flex h-fit w-full shrink-0 flex-col items-start justify-start gap-1.5"
@@ -113,8 +107,6 @@ export default function Login() {
               </p>
             )}
           </div>
-
-          {/* Password */}
           <div
             data-pencil-name="Field Contraseña"
             className="box-border flex h-fit w-full shrink-0 flex-col items-start justify-start gap-1.5"
@@ -167,8 +159,6 @@ export default function Login() {
               </Button>
             </div>
           </div>
-
-          {/* Forgot */}
           <div
             data-pencil-name="Remember Row"
             className="box-border flex h-fit w-full shrink-0 flex-row items-center justify-between p-[2px_0px]"
@@ -181,8 +171,6 @@ export default function Login() {
               ¿Olvidaste tu contraseña?
             </a>
           </div>
-
-          {/* Primary Button */}
           <Button
             type="submit"
             disabled={login.isPending}
@@ -201,8 +189,6 @@ export default function Login() {
             </p>
           )}
         </form>
-
-        {/* Support Row */}
         <div
           data-pencil-name="Support Row"
           className="box-border flex h-fit shrink-0 cursor-pointer flex-row items-center justify-center gap-1.5 hover:underline"
