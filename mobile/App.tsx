@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 export default function App() {
   return (
     <View style={styles.container}>
-      <Text>Barra Bodega Mobile</Text>
+      <Text>Barra Bodega Mobile Test!</Text>
       <StatusBar style="auto" />
     </View>
   );
