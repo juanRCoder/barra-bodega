@@ -1,3 +1,4 @@
+import { fetchWithTimeout } from '../lib/fetch-timeout';
 import type { AuthResponse, LoginRequest } from '@barra-bodega/types';
 
 export class AuthApiError extends Error {
@@ -48,7 +49,7 @@ class AuthService {
       );
     }
 
-    const response = await fetch(`${this.API}/auth/login`, {
+    const response = await fetchWithTimeout(`${this.API}/auth/login`, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -74,6 +75,28 @@ class AuthService {
 
     accessToken = result.accessToken;
     return result;
+  }
+
+  async logout(): Promise<void> {
+    if (!this.API) {
+      throw new AuthApiError('Configura EXPO_PUBLIC_API_URL', 0);
+    }
+
+    const response = await fetchWithTimeout(`${this.API}/auth/logout`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+
+    if (!response.ok) {
+      const result: unknown = await response.json().catch(() => null);
+      const message =
+        isRecord(result) && typeof result.message === 'string'
+          ? result.message
+          : 'No se pudo cerrar sesión';
+      throw new AuthApiError(message, response.status);
+    }
+
+    accessToken = null;
   }
 }
 
