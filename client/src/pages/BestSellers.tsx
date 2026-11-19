@@ -5,7 +5,7 @@ import { useSalesAnalytics } from '@/hooks/useOrders';
 import type { SalesPeriod } from '@/types/order.type';
 import { OrdersApiError } from '@/services/orders.service';
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 6;
 const RANGES: { value: SalesPeriod; label: string }[] = [
   { value: 'today', label: 'Hoy' },
   { value: 'week', label: '7 días' },

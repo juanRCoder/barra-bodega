@@ -11,7 +11,7 @@ export function LoadingScreen({ message }: LoadingScreenProps) {
       aria-live="polite"
       style={{ fontFamily: 'Inter, ui-sans-serif, system-ui, sans-serif' }}
     >
-      <div className="flex size-14 animate-pulse items-center justify-center rounded-2xl bg-[#D9F36A] [animation-duration:1.8s]">
+      <div className="flex size-14 animate-pulse items-center justify-center rounded-2xl bg-[#D9F36A] animation-duration-[1.8s]">
         <span
           aria-hidden="true"
           className="text-[34px] leading-none font-bold text-[#104B37]"
@@ -19,7 +19,7 @@ export function LoadingScreen({ message }: LoadingScreenProps) {
           ▥
         </span>
       </div>
-      <p className="m-0 animate-pulse text-sm [animation-duration:1.8s]">
+      <p className="m-0 animate-pulse text-sm animation-duration-[1.8s]">
         {message}
       </p>
     </div>
