@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">BarraBodega</string>
+    <string name="title_activity_main">BarraBodega</string>
+    <string name="package_name">com.tuusuario.miapp</string>
+    <string name="custom_url_scheme">com.tuusuario.miapp</string>
+</resources>
