@@ -29,8 +29,9 @@ jobs:
           VITE_API_ORIGIN: https://barra-bodega.onrender.com
       - run: pnpm --filter client exec cap sync android
       - run: cd client/android && chmod +x gradlew && ./gradlew assembleDebug
+      - run: cp client/android/app/build/outputs/apk/debug/app-debug.apk barraBodega.apk
       - uses: actions/upload-artifact@v4
         with:
-          name: app-debug-${{ github.sha }}
-          path: client/android/app/build/outputs/apk/debug/app-debug.apk
+          name: barraBodega
+          path: barraBodega.apk
           retention-days: 7

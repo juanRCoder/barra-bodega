@@ -1,3 +1,4 @@
+import { LoadingScreen } from '@/components/LoadingScreen';
 import { RegisterPayment } from '@/components/RegisterPayment';
 import {
   Banknote,
@@ -85,14 +86,7 @@ export default function AccountDetail() {
   const goNext = () => setPage((p) => Math.min(totalPages, p + 1));
 
   if (accountQuery.isPending) {
-    return (
-      <div
-        className="flex min-h-screen items-center justify-center text-sm text-[#65736B]"
-        role="status"
-      >
-        Cargando cuenta…
-      </div>
-    );
+    return <LoadingScreen message="Cargando cuenta…" />;
   }
 
   if (accountQuery.isError || !account) {

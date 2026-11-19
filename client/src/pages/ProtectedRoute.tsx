@@ -1,4 +1,5 @@
 import { Navigate, useLocation } from 'react-router-dom';
+import { LoadingScreen } from '@/components/LoadingScreen';
 import { useAuthSession } from '@/hooks/useAuthSession';
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -6,14 +7,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { data: user, isPending, isError, refetch } = useAuthSession();
 
   if (isPending) {
-    return (
-      <div
-        className="flex min-h-screen items-center justify-center text-sm text-[#65736B]"
-        role="status"
-      >
-        Verificando sesión...
-      </div>
-    );
+    return <LoadingScreen message="Verificando sesión..." />;
   }
 
   if (isError) {

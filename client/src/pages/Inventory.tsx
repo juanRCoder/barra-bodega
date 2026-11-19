@@ -12,7 +12,7 @@ import {
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const PAGE_SIZE = 6;
+const PAGE_SIZE = 7;
 
 const getVisiblePages = (currentPage: number, pageCount: number) => {
   if (pageCount <= 5) {

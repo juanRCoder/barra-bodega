@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Logo ▥: cuadrado con líneas verticales, color #104B37 -->
+    <path
+        android:pathData="M34,34h40v40h-40z"
+        android:strokeColor="#104B37"
+        android:strokeWidth="4.3" />
+    <path
+        android:pathData="M45,34v40M54,34v40M63,34v40"
+        android:strokeColor="#104B37"
+        android:strokeWidth="3.2" />
+</vector>

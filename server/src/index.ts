@@ -2,6 +2,8 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
+import { apiLimiter } from '@/middleware/rate-limit.middleware.js';
 import { ZodError } from 'zod';
 import { AppError } from '@/lib/app-error.js';
 import apiRouter from '@/routes/route.js';
@@ -18,6 +20,10 @@ const allowedOrigins = [
   'https://localhost',
 ];
 
+// Render está detrás de un proxy: sin esto todas las IP serían la del proxy
+// y el rate limit bloquearía a todos a la vez.
+app.set('trust proxy', 1);
+app.use(helmet());
 app.use(
   cors({
     origin: allowedOrigins, // 👈 Pasamos el array directamente aquí
@@ -29,7 +35,7 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-app.use('/api', apiRouter);
+app.use('/api', apiLimiter, apiRouter);
 app.use(
   (
     error: unknown,
