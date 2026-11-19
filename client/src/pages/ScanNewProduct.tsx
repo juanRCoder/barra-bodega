@@ -182,7 +182,7 @@ export default function NewProduct() {
               Nuevo producto
             </h2>
             <div className="box-border text-left text-[9px]/[normal] font-[Inter,system-ui,sans-serif] font-normal whitespace-nowrap text-[#65736B]">
-              Revisa los datos antes de agregarlo
+              Revisa los datos antes de agregarlo.
             </div>
           </div>
 
