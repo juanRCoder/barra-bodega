@@ -25,6 +25,8 @@ jobs:
         with: { distribution: temurin, java-version: 21, cache: gradle }
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter "client..." build
+        env:
+          VITE_API_ORIGIN: https://barra-bodega.onrender.com
       - run: pnpm --filter client exec cap sync android
       - run: cd client/android && chmod +x gradlew && ./gradlew assembleDebug
       - uses: actions/upload-artifact@v4

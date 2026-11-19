@@ -14,6 +14,8 @@ const allowedOrigins = [
     ? process.env.CLIENT_ORIGIN.split(',').map((origin) => origin.trim())
     : ['http://localhost:5173']),
   'http://localhost:8081',
+  // App Capacitor (APK) en Android.
+  'https://localhost',
 ];
 
 app.use(

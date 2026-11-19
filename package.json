@@ -1,6 +1,7 @@
 {
   "name": "barra-bodega",
   "private": true,
+  "packageManager": "pnpm@10.34.5",
   "scripts": {
     "dev": "pnpm -r --parallel dev",
     "build": "pnpm -r build",
@@ -17,7 +18,7 @@
     "packages/*"
   ],
   "lint-staged": {
-    "*.{js,ts,jsx,tsx,json,css,md}": "prettier --write"
+    "*.{js,ts,jsx,tsx,json,css,md,html,yml,yaml}": "prettier --write"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.4",

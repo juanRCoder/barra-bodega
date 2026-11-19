@@ -1,3 +1,4 @@
+import { apiUrl } from '@/lib/api-url';
 import type {
   LoginFormValues,
   RegisterFormValues,
@@ -36,7 +37,7 @@ async function authRequest<T>(
   endpoint: string,
   body?: Record<string, string>
 ): Promise<T> {
-  const response = await fetch(`/api/auth/${endpoint}`, {
+  const response = await fetch(apiUrl(`/api/auth/${endpoint}`), {
     method: 'POST',
     credentials: 'include',
     headers: body ? { 'Content-Type': 'application/json' } : undefined,
@@ -112,7 +113,8 @@ export async function apiFetch(
   const send = () => {
     const headers = new Headers(init.headers);
     if (accessToken) headers.set('Authorization', `Bearer ${accessToken}`);
-    return fetch(input, { ...init, headers, credentials: 'include' });
+    const url = typeof input === 'string' ? apiUrl(input) : input;
+    return fetch(url, { ...init, headers, credentials: 'include' });
   };
 
   let response = await send();
